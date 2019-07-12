@@ -699,41 +699,13 @@ class RESTApiTestSuite(RESTApiTestCase):
         RESTApiTestCase.node_exception(self, "/computers?aa=bb&id=2", InputValidationError)
         """
 
-    ############### single calculation ########################
-    def test_calculations_details(self):
-        """
-        Requests the details of single calculation
-        """
-        node_uuid = self.get_dummy_data()['calculations'][0]['uuid']
-        RESTApiTestCase.process_test(
-            self, 'calculations', '/calculations/' + str(node_uuid), expected_list_ids=[0], uuid=node_uuid
-        )
-
-    ############### full list with limit, offset, page, perpage #############
-    def test_calculations_list(self):
-        """
-        Get the full list of calculations from database
-        """
-        RESTApiTestCase.process_test(self, 'calculations', '/calculations?orderby=-id', full_list=True)
-
-    def test_calculations_list_limit_offset(self):
-        """
-        Get the list of calculations from database using limit
-        and offset parameter.
-        It should return the no of rows specified in limit from
-        database starting from the no. specified in offset
-        """
-        RESTApiTestCase.process_test(
-            self, 'calculations', '/calculations?limit=1&offset=1&orderby=+id', expected_list_ids=[1]
-        )
-
     ############### calculation retrieved_inputs and retrieved_outputs  #############
     def test_calculation_retrieved_inputs(self):
         """
         Get the list of given calculation retrieved_inputs
         """
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/io/retrieved_inputs'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/io/retrieved_inputs'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -743,8 +715,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         Get the list of given calculation retrieved_outputs
         """
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/io/retrieved_outputs'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/io/retrieved_outputs'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -756,8 +728,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
         self.process_test(
-            'calculations',
-            '/calculations/' + str(node_uuid) + '/io/retrieved_inputs',
+            "processnodes",
+            "/processnodes/" + str(node_uuid) + "/io/retrieved_inputs",
             uuid=node_uuid,
             result_name='retrieved_inputs',
             empty_list=True
@@ -769,8 +741,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
         self.process_test(
-            'calculations',
-            '/calculations/' + str(node_uuid) + '/io/retrieved_outputs',
+            "processnodes",
+            "/processnodes/" + str(node_uuid) + "/io/retrieved_outputs",
             uuid=node_uuid,
             result_name='retrieved_outputs',
             empty_list=True
@@ -783,8 +755,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
         self.process_test(
-            'calculations',
-            '/calculations/' + str(node_uuid) + '/io/inputs?orderby=id',
+            "nodes",
+            "/nodes/" + str(node_uuid) + "/io/inputs?orderby=id",
             expected_list_ids=[5, 3],
             uuid=node_uuid,
             result_node_type='data',
@@ -797,8 +769,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
         self.process_test(
-            'calculations',
-            '/calculations/' + str(node_uuid) + '/io/inputs?node_type="data.dict.Dict."',
+            "nodes",
+            '/nodes/' + str(node_uuid) + '/io/inputs?node_type="data.dict.Dict."',
             expected_list_ids=[3],
             uuid=node_uuid,
             result_node_type='data',
@@ -809,8 +781,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         Get filtered inputs list for given calculations
         """
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/io/tree?in_limit=1&out_limit=1'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/io/tree?in_limit=1&out_limit=1'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -820,7 +792,7 @@ class RESTApiTestSuite(RESTApiTestCase):
             received_attr = response['data']['nodes'][1].keys()
             for attr in expected_attr:
                 self.assertIn(attr, received_attr)
-            RESTApiTestCase.compare_extra_response_data(self, 'calculations', url, response, uuid=node_uuid)
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     ############### calculation attributes #############
     def test_calculation_attributes(self):
@@ -835,14 +807,14 @@ class RESTApiTestSuite(RESTApiTestCase):
                 'num_mpiprocs_per_machine': 1
             },
         }
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/content/attributes'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + "/nodes/" + str(node_uuid) + "/content/attributes"
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
             self.assertNotIn('message', response)
-            self.assertEqual(response['data']['attributes'], attributes)
-            RESTApiTestCase.compare_extra_response_data(self, 'calculations', url, response, uuid=node_uuid)
+            self.assertEqual(response["data"]["attributes"], attributes)
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     def test_calculation_attributes_nalist_filter(self):
         """
@@ -855,28 +827,27 @@ class RESTApiTestSuite(RESTApiTestCase):
                 'num_mpiprocs_per_machine': 1
             },
         }
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/content/attributes?nalist="attr1"'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/content/attributes?nalist="attr1"'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
             self.assertNotIn('message', response)
-
-            self.assertEqual(response['data']['attributes'], attributes)
-            RESTApiTestCase.compare_extra_response_data(self, 'calculations', url, response, uuid=node_uuid)
+            self.assertEqual(response["data"]["attributes"], attributes)
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     def test_calculation_attributes_alist_filter(self):
         """
         Get list of calculation attributes with filter alist
         """
-        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/calculations/' + str(node_uuid) + '/content/attributes?alist="attr1"'
+        node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/content/attributes?alist="attr1"'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
             self.assertNotIn('message', response)
-            self.assertEqual(response['data']['attributes'], {'attr1': 'OK'})
-            RESTApiTestCase.compare_extra_response_data(self, 'calculations', url, response, uuid=node_uuid)
+            self.assertEqual(response["data"]["attributes"], {'attr1': 'OK'})
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     ############### Structure visualization and download #############
     def test_structure_visualization(self):
@@ -884,8 +855,9 @@ class RESTApiTestSuite(RESTApiTestCase):
         Get the list of give calculation inputs
         """
         from aiida.backends.tests.test_dataclasses import simplify
-        node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
-        url = self.get_url_prefix() + '/structures/' + str(node_uuid) + '/content/visualization?visformat=cif'
+
+        node_uuid = self.get_dummy_data()["structuredata"][0]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/content/visualization?visformat=cif'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
@@ -893,27 +865,25 @@ class RESTApiTestSuite(RESTApiTestCase):
 
             expected_visdata = """\n##########################################################################\n#               Crystallographic Information Format file \n#               Produced by PyCifRW module\n# \n#  This is a CIF file.  CIF has been adopted by the International\n#  Union of Crystallography as the standard for data archiving and \n#  transmission.\n#\n#  For information on this file format, follow the CIF links at\n#  http://www.iucr.org\n##########################################################################\n\ndata_0\nloop_\n  _atom_site_label\n  _atom_site_fract_x\n  _atom_site_fract_y\n  _atom_site_fract_z\n  _atom_site_type_symbol\n   Ba1  0.0  0.0  0.0  Ba\n \n_cell_angle_alpha                       90.0\n_cell_angle_beta                        90.0\n_cell_angle_gamma                       90.0\n_cell_length_a                          2.0\n_cell_length_b                          2.0\n_cell_length_c                          2.0\nloop_\n  _symmetry_equiv_pos_as_xyz\n   'x, y, z'\n \n_symmetry_int_tables_number             1\n_symmetry_space_group_name_H-M          'P 1'\n"""  # pylint: disable=line-too-long
             self.assertEqual(
-                simplify(response['data']['visualization']['str_viz_info']['data']), simplify(expected_visdata)
-            )
-            self.assertEqual(response['data']['visualization']['str_viz_info']['format'], 'cif')
-            self.assertEqual(
-                response['data']['visualization']['dimensionality'], {
-                    u'dim': 3,
-                    u'value': 8.0,
-                    u'label': u'volume'
-                }
-            )
-            self.assertEqual(response['data']['visualization']['pbc'], [True, True, True])
-            self.assertEqual(response['data']['visualization']['formula'], 'Ba')
-            RESTApiTestCase.compare_extra_response_data(self, 'structures', url, response, uuid=node_uuid)
+                simplify(response["data"]["visualization"]["str_viz_info"]["data"]), simplify(expected_visdata))
+            self.assertEqual(response["data"]["visualization"]["str_viz_info"]["format"], "cif")
+            self.assertEqual(response["data"]["visualization"]["dimensionality"], {
+                u'dim': 3,
+                u'value': 8.0,
+                u'label': u'volume'
+            })
+            self.assertEqual(response["data"]["visualization"]["pbc"], [True, True, True])
+            self.assertEqual(response["data"]["visualization"]["formula"], "Ba")
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     def test_xsf_visualization(self):
         """
         Get the list of given calculation inputs
         """
         from aiida.backends.tests.test_dataclasses import simplify
-        node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
-        url = self.get_url_prefix() + '/structures/' + str(node_uuid) + '/content/visualization?visformat=xsf'
+
+        node_uuid = self.get_dummy_data()["structuredata"][0]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/content/visualization?visformat=xsf'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
@@ -921,27 +891,25 @@ class RESTApiTestSuite(RESTApiTestCase):
 
             expected_visdata = 'CRYSTAL\nPRIMVEC 1\n      2.0000000000       0.0000000000       0.0000000000\n      0.0000000000       2.0000000000       0.0000000000\n      0.0000000000       0.0000000000       2.0000000000\nPRIMCOORD 1\n1 1\n56       0.0000000000       0.0000000000       0.0000000000\n'  # pylint: disable=line-too-long
             self.assertEqual(
-                simplify(response['data']['visualization']['str_viz_info']['data']), simplify(expected_visdata)
-            )
-            self.assertEqual(response['data']['visualization']['str_viz_info']['format'], 'xsf')
-            self.assertEqual(
-                response['data']['visualization']['dimensionality'], {
-                    u'dim': 3,
-                    u'value': 8.0,
-                    u'label': u'volume'
-                }
-            )
-            self.assertEqual(response['data']['visualization']['pbc'], [True, True, True])
-            self.assertEqual(response['data']['visualization']['formula'], 'Ba')
-            RESTApiTestCase.compare_extra_response_data(self, 'structures', url, response, uuid=node_uuid)
+                simplify(response["data"]["visualization"]["str_viz_info"]["data"]), simplify(expected_visdata))
+            self.assertEqual(response["data"]["visualization"]["str_viz_info"]["format"], "xsf")
+            self.assertEqual(response["data"]["visualization"]["dimensionality"], {
+                u'dim': 3,
+                u'value': 8.0,
+                u'label': u'volume'
+            })
+            self.assertEqual(response["data"]["visualization"]["pbc"], [True, True, True])
+            self.assertEqual(response["data"]["visualization"]["formula"], "Ba")
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     def test_visualization(self):
         """
         Get the list of given calculation inputs
         """
         from aiida.backends.tests.test_dataclasses import simplify
-        node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
-        url = self.get_url_prefix() + '/structures/' + str(node_uuid) + '/content/visualization'
+
+        node_uuid = self.get_dummy_data()["structuredata"][0]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/content/visualization'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
@@ -953,15 +921,16 @@ class RESTApiTestSuite(RESTApiTestCase):
             )
             self.assertEqual(response['data']['visualization']['str_viz_info']['format'], 'xsf')
             self.assertEqual(
-                response['data']['visualization']['dimensionality'], {
-                    u'dim': 3,
-                    u'value': 8.0,
-                    u'label': u'volume'
-                }
-            )
-            self.assertEqual(response['data']['visualization']['pbc'], [True, True, True])
-            self.assertEqual(response['data']['visualization']['formula'], 'Ba')
-            RESTApiTestCase.compare_extra_response_data(self, 'structures', url, response, uuid=node_uuid)
+                simplify(response["data"]["visualization"]["str_viz_info"]["data"]), simplify(expected_visdata))
+            self.assertEqual(response["data"]["visualization"]["str_viz_info"]["format"], "xsf")
+            self.assertEqual(response["data"]["visualization"]["dimensionality"], {
+                u'dim': 3,
+                u'value': 8.0,
+                u'label': u'volume'
+            })
+            self.assertEqual(response["data"]["visualization"]["pbc"], [True, True, True])
+            self.assertEqual(response["data"]["visualization"]["formula"], "Ba")
+            RESTApiTestCase.compare_extra_response_data(self, "nodes", url, response, uuid=node_uuid)
 
     def test_cif(self):
         """
@@ -969,8 +938,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         from aiida.orm import load_node
 
-        node_uuid = self.get_dummy_data()['cifdata'][0]['uuid']
-        url = self.get_url_prefix() + '/cifs/' + node_uuid + '/content/download'
+        node_uuid = self.get_dummy_data()["cifdata"][0]["uuid"]
+        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/content/download'
 
         with self.app.test_client() as client:
             rv_obj = client.get(url)
@@ -983,7 +952,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         test schema
         """
-        for nodetype in ['nodes', 'calculations', 'data', 'codes', 'computers', 'users', 'groups']:
+        for nodetype in ["nodes", "processnodes", "computers", "users", "groups"]:
             url = self.get_url_prefix() + '/' + nodetype + '/schema'
             with self.app.test_client() as client:
                 rv_obj = client.get(url)
