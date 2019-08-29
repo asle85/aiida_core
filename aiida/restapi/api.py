@@ -63,6 +63,15 @@ class App(Flask):
                     response = jsonify({'message': str(error)})
                     response.status_code = 501
 
+                elif isinstance(error, HTTPException) and error.code == 404:
+                    from aiida.restapi.common.utils import list_routes
+
+                    response = jsonify({
+                        'message':'The requested URL is not found on the server.',
+                        'available_endpoints': list_routes()
+                    })
+                    response.status_code = 404
+
                 # Generic server-side error (not to make the api crash if an
                 # unhandled exception is raised. Caution is never enough!!)
                 else:
@@ -190,19 +199,4 @@ class AiidaApi(Api):
         :param e: raised exception
         :return: list of available endpoints
         """
-
-        if isinstance(e, HTTPException):
-            if e.code == 404:
-
-                from aiida.restapi.common.utils import list_routes
-
-                response = {}
-
-                response['status'] = '404 Not Found'
-                response['message'] = 'The requested URL is not found on the server.'
-
-                response['available_endpoints'] = list_routes()
-
-                return jsonify(response)
-
         raise e
