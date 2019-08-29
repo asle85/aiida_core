@@ -28,11 +28,11 @@ NODES / CALCULATIONS / DATAS / CODES:
     http://localhost:5000/nodes/pages/1?(COLUMN_FILTERS)&(PER_PAGE)&(SORT)
 
     http://localhost:5000/nodes/1
-    http://localhost:5000/nodes/1/io
-    http://localhost:5000/nodes/1/io/inputs
-    http://localhost:5000/nodes/1/io/inputs?(COLUMN_FILTERS)
-    http://localhost:5000/nodes/1/io/outputs
-    http://localhost:5000/nodes/1/io/outputs?(COLUMN_FILTERS)
+    http://localhost:5000/nodes/1/links
+    http://localhost:5000/nodes/1/links/incoming
+    http://localhost:5000/nodes/1/links/incoming?(COLUMN_FILTERS)
+    http://localhost:5000/nodes/1/links/outgoing
+    http://localhost:5000/nodes/1/links/outgoing?(COLUMN_FILTERS)
     http://localhost:5000/nodes/1/contents/attributes
     http://localhost:5000/nodes/1/contents/attributes?alist=abc
     http://localhost:5000/nodes/1/contents/attributes?nalist=c,d

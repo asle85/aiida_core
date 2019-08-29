@@ -150,9 +150,9 @@ class NodeTranslator(BaseTranslator):
 
         if query_type == 'default':
             pass
-        elif query_type == 'inputs':
+        elif query_type == 'incoming':
             self._result_type = 'with_outgoing'
-        elif query_type == 'outputs':
+        elif query_type == 'outgoing':
             self._result_type = 'with_incoming'
         elif query_type == 'attributes':
             self._content_type = 'attributes'
@@ -343,12 +343,12 @@ class NodeTranslator(BaseTranslator):
 
         elif self._content_type == 'retrieved_inputs':
             # This type is only available for calc nodes. In case of job calc it
-            # returns calc inputs prepared to submit calc on the cluster else []
+            # returns calc incoming prepared to submit calc on the cluster else []
             data = {self._content_type: self.get_retrieved_inputs(node, self._filename, self._rtype)}
 
         elif self._content_type == 'retrieved_outputs':
             # This type is only available for calc nodes. In case of job calc it
-            # returns calc outputs retrieved from the cluster else []
+            # returns calc outgoing retrieved from the cluster else []
             data = {self._content_type: self.get_retrieved_outputs(node, self._filename, self._rtype)}
 
         else:
@@ -647,7 +647,7 @@ class NodeTranslator(BaseTranslator):
             })
         node_count += 1
 
-        # get all inputs
+        # get all incoming
         qb_obj = QueryBuilder()
         qb_obj.append(Node, tag='main', project=['*'], filters=self._id_filter)
         qb_obj.append(Node, tag='in', project=['*'], edge_project=['label', 'type'], with_outgoing='main')
@@ -699,7 +699,7 @@ class NodeTranslator(BaseTranslator):
                     'linktype': linktype,
                 })
 
-        # get all outputs
+        # get all outgoing
         qb_obj = QueryBuilder()
         qb_obj.append(Node, tag='main', project=['*'], filters=self._id_filter)
         qb_obj.append(Node, tag='out', project=['*'], edge_project=['label', 'type'], with_incoming='main')

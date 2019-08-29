@@ -274,7 +274,7 @@ class RESTApiTestCase(AiidaTestCase):
         :param expected_errormsg: expected error message in response
         :param uuid: url requested for the node pk
         :param result_node_type: node type in response data
-        :param result_name: result name in response e.g. inputs, outputs
+        :param result_name: result name in response e.g. incoming, outgoing
         """
 
         if expected_list_ids is None:
@@ -705,7 +705,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         Get the list of given calculation retrieved_inputs
         """
         node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
-        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/io/retrieved_inputs'
+        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/links/retrieved_inputs'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -716,7 +716,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         Get the list of given calculation retrieved_outputs
         """
         node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
-        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/io/retrieved_outputs'
+        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/links/retrieved_outputs'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -729,7 +729,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
         self.process_test(
             "processnodes",
-            "/processnodes/" + str(node_uuid) + "/io/retrieved_inputs",
+            "/processnodes/" + str(node_uuid) + "/links/retrieved_inputs",
             uuid=node_uuid,
             result_name='retrieved_inputs',
             empty_list=True
@@ -742,47 +742,47 @@ class RESTApiTestSuite(RESTApiTestCase):
         node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
         self.process_test(
             "processnodes",
-            "/processnodes/" + str(node_uuid) + "/io/retrieved_outputs",
+            "/processnodes/" + str(node_uuid) + "/links/retrieved_outputs",
             uuid=node_uuid,
             result_name='retrieved_outputs',
             empty_list=True
         )
 
-    ############### calculation inputs  #############
+    ############### calculation incoming  #############
     def test_calculation_inputs(self):
         """
-        Get the list of give calculation inputs
+        Get the list of give calculation incoming
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
         self.process_test(
             "nodes",
-            "/nodes/" + str(node_uuid) + "/io/inputs?orderby=id",
+            "/nodes/" + str(node_uuid) + "/links/incoming?orderby=id",
             expected_list_ids=[5, 3],
             uuid=node_uuid,
             result_node_type='data',
-            result_name='inputs'
+            result_name='incoming'
         )
 
     def test_calculation_input_filters(self):
         """
-        Get filtered inputs list for given calculations
+        Get filtered incoming list for given calculations
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
         self.process_test(
             "nodes",
-            '/nodes/' + str(node_uuid) + '/io/inputs?node_type="data.dict.Dict."',
+            '/nodes/' + str(node_uuid) + '/links/incoming?node_type="data.dict.Dict."',
             expected_list_ids=[3],
             uuid=node_uuid,
             result_node_type='data',
-            result_name='inputs'
+            result_name='incoming'
         )
 
     def test_calculation_iotree(self):
         """
-        Get filtered inputs list for given calculations
+        Get filtered incoming list for given calculations
         """
         node_uuid = self.get_dummy_data()["calculations"][1]["uuid"]
-        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/io/tree?in_limit=1&out_limit=1'
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/links/tree?in_limit=1&out_limit=1'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -852,7 +852,7 @@ class RESTApiTestSuite(RESTApiTestCase):
     ############### Structure visualization and download #############
     def test_structure_visualization(self):
         """
-        Get the list of give calculation inputs
+        Get the list of give calculation incoming
         """
         from aiida.backends.tests.test_dataclasses import simplify
 
@@ -878,7 +878,7 @@ class RESTApiTestSuite(RESTApiTestCase):
 
     def test_xsf_visualization(self):
         """
-        Get the list of given calculation inputs
+        Get the list of given calculation incoming
         """
         from aiida.backends.tests.test_dataclasses import simplify
 
@@ -904,7 +904,7 @@ class RESTApiTestSuite(RESTApiTestCase):
 
     def test_visualization(self):
         """
-        Get the list of given calculation inputs
+        Get the list of given calculation incoming
         """
         from aiida.backends.tests.test_dataclasses import simplify
 

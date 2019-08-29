@@ -482,9 +482,9 @@ class BaseTranslator(object):
 
         # TODO think how to make it less hardcoded
         if self._result_type == 'with_outgoing':
-            result = {'inputs': results}
+            result = {'incoming': results}
         elif self._result_type == 'with_incoming':
-            result = {'outputs': results}
+            result = {'outgoing': results}
         else:
             result = {self.__label__: results}
 
