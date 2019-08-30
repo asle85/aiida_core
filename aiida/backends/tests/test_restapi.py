@@ -1013,3 +1013,20 @@ class RESTApiTestSuite(RESTApiTestCase):
             for comment in response:
                 all_comments.append(comment['message'])
             self.assertEqual(sorted(all_comments), sorted(['This is test comment.', 'Add another comment.']))
+
+    def test_repo(self):
+        """
+        Test to get repo list or repo file contents for given node
+        """
+        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/repo/list?filename="calcjob_inputs"'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+            self.assertEqual(response['data']['repo_list'], [{'type': 'FILE', 'name': 'aiida.in'}])
+
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/repo/contents?filename="calcjob_inputs/aiida.in"'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+            self.assertEqual(response['data']['repo_contents'], 'The input file\nof the CalcJob node')

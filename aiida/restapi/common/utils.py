@@ -229,9 +229,14 @@ class Utils(object):
                 raise RestInputValidationError('url requesting types do not accept further fields')
             else:
                 return (resource_type, page, node_id, query_type)
-        elif path[0] == 'links' or path[0] == 'contents':
+        elif path[0] in ['links', 'contents']:
             path.pop(0)
             query_type = path.pop(0)
+            if not path:
+                return (resource_type, page, node_id, query_type)
+        elif path[0] in ['repo']:
+            path.pop(0)
+            query_type = 'repo_' + path.pop(0)
             if not path:
                 return (resource_type, page, node_id, query_type)
 
@@ -813,7 +818,7 @@ class Utils(object):
         # General query string
         general_grammar = SS() + Optional(field) + ZeroOrMore(
             separator + field) + \
-                         Optional(separator) + SE()
+                          Optional(separator) + SE()
 
         ## Parse the query string
         try:

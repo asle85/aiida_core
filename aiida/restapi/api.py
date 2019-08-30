@@ -153,6 +153,8 @@ class AiidaApi(Api):
             '/nodes/<id>/contents/visualization/',
             '/nodes/<id>/contents/download/',
             '/nodes/<id>/contents/comments/',
+            '/nodes/<id>/repo/list/',
+            '/nodes/<id>/repo/contents/',
             endpoint='nodes',
             strict_slashes=False,
             resource_class_kwargs=kwargs

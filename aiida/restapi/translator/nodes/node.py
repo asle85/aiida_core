@@ -170,6 +170,12 @@ class NodeTranslator(BaseTranslator):
             self._downloadformat = downloadformat
         elif query_type == 'comments':
             self._content_type = 'comments'
+        elif query_type == 'repo_list':
+            self._content_type = 'repo_list'
+            self._filename = filename
+        elif query_type == 'repo_contents':
+            self._content_type = 'repo_contents'
+            self._filename = filename
         elif query_type == 'retrieved_inputs':
             self._content_type = 'retrieved_inputs'
             self._filename = filename
@@ -268,6 +274,8 @@ class NodeTranslator(BaseTranslator):
         :return: data: a dictionary containing the results obtained by
         running the query
         """
+        # pylint: disable=too-many-statements
+
         if not self._is_qb_initialized:
             raise InvalidOperation('query builder object has not been initialized.')
 
@@ -352,6 +360,14 @@ class NodeTranslator(BaseTranslator):
             # This type is only available for calc nodes. In case of job calc it
             # returns calc outgoing retrieved from the cluster else []
             data = {self._content_type: self.get_retrieved_outputs(node, self._filename, self._rtype)}
+
+        elif self._content_type == 'repo_list':
+            # return the node comments
+            data = {self._content_type: self.get_repo_list(node, self._filename)}
+
+        elif self._content_type == 'repo_contents':
+            # return the node comments
+            data = {self._content_type: self.get_repo_contents(node, self._filename)}
 
         elif self._content_type == 'comments':
             # return the node comments
@@ -513,6 +529,47 @@ class NodeTranslator(BaseTranslator):
         """
         # pylint: disable=unused-argument
         return []
+
+    @staticmethod
+    def get_repo_list(node, filename=''):
+        """
+        Every node in AiiDA is having repo folder.
+        This function returns the metadata using get_object() method
+        :param node: node object
+        :param filename: folder or file name (optional)
+        :return: folder list / file metadata
+        """
+        from aiida.orm.utils.repository import File
+        try:
+            flist = node.list_objects(filename)
+        except NotADirectoryError:
+            flist = node.get_object(filename)
+            if isinstance(flist, File):
+                flist = [flist]
+        response = []
+        for fobj in flist:
+            response.append({'name': fobj.name, 'type': fobj.type.name})
+        return response
+
+    @staticmethod
+    def get_repo_contents(node, filename=''):
+        """
+        Every node in AiiDA is having repo folder.
+        This function returns the metadata using get_object() method
+        :param node: node object
+        :param filename: folder or file name (optional)
+        :return: folder list / file metadata
+        """
+        from aiida.restapi.common.exceptions import RestInputValidationError
+        if filename:
+            try:
+                data = node.get_object_content(filename)
+                return data
+            except IsADirectoryError:
+                raise RestInputValidationError('It is a directory. Please pass filename.')
+            except FileNotFoundError:
+                raise RestInputValidationError('No such file is present')
+        raise RestInputValidationError('filename is not provided')
 
     @staticmethod
     def get_comments(node):
