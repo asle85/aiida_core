@@ -67,7 +67,7 @@ class App(Flask):
                     from aiida.restapi.common.utils import list_routes
 
                     response = jsonify({
-                        'message':'The requested URL is not found on the server.',
+                        'message': 'The requested URL is not found on the server.',
                         'available_endpoints': list_routes()
                     })
                     response.status_code = 404
@@ -148,11 +148,11 @@ class AiidaApi(Api):
             '/nodes/<id>/links/outgoing/page/',
             '/nodes/<id>/links/outgoing/page/<int:page>/',
             '/nodes/<id>/links/tree/',
-            '/nodes/<id>/content/attributes/',
-            '/nodes/<id>/content/extras/',
-            '/nodes/<id>/content/visualization/',
-            '/nodes/<id>/content/download/',
-            #'/nodes/<id>/content/comments/',
+            '/nodes/<id>/contents/attributes/',
+            '/nodes/<id>/contents/extras/',
+            '/nodes/<id>/contents/visualization/',
+            '/nodes/<id>/contents/download/',
+            '/nodes/<id>/contents/comments/',
             endpoint='nodes',
             strict_slashes=False,
             resource_class_kwargs=kwargs

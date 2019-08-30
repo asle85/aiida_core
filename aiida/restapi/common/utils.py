@@ -229,7 +229,7 @@ class Utils(object):
                 raise RestInputValidationError('url requesting types do not accept further fields')
             else:
                 return (resource_type, page, node_id, query_type)
-        elif path[0] == 'links' or path[0] == 'content':
+        elif path[0] == 'links' or path[0] == 'contents':
             path.pop(0)
             query_type = path.pop(0)
             if not path:

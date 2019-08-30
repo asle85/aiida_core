@@ -168,6 +168,8 @@ class NodeTranslator(BaseTranslator):
         elif query_type == 'download':
             self._content_type = 'download'
             self._downloadformat = downloadformat
+        elif query_type == 'comments':
+            self._content_type = 'comments'
         elif query_type == 'retrieved_inputs':
             self._content_type = 'retrieved_inputs'
             self._filename = filename
@@ -351,6 +353,10 @@ class NodeTranslator(BaseTranslator):
             # returns calc outgoing retrieved from the cluster else []
             data = {self._content_type: self.get_retrieved_outputs(node, self._filename, self._rtype)}
 
+        elif self._content_type == 'comments':
+            # return the node comments
+            data = {self._content_type: self.get_comments(node)}
+
         else:
             raise ValidationError('invalid content type')
 
@@ -507,6 +513,23 @@ class NodeTranslator(BaseTranslator):
         """
         # pylint: disable=unused-argument
         return []
+
+    @staticmethod
+    def get_comments(node):
+        """
+        :param node: node object
+        :return: node comments
+        """
+        comments = node.get_comments()
+        response = []
+        for cobj in comments:
+            response.append({
+                'created_time': cobj.ctime,
+                'modified_time': cobj.mtime,
+                'user': cobj.user.first_name + ' ' + cobj.user.last_name,
+                'message': cobj.content
+            })
+        return response
 
     @staticmethod
     def get_file_content(node, file_name):
