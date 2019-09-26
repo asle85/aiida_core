@@ -46,7 +46,7 @@ class NodeTranslator(BaseTranslator):
     _nalist = None
     _elist = None
     _nelist = None
-    _downloadformat = None
+    _format = None
     _visformat = None
     _filename = None
     _rtype = None
@@ -136,7 +136,7 @@ class NodeTranslator(BaseTranslator):
         nalist=None,
         elist=None,
         nelist=None,
-        downloadformat=None,
+        format=None,
         visformat=None,
         filename=None,
         rtype=None
@@ -167,7 +167,7 @@ class NodeTranslator(BaseTranslator):
             self._visformat = visformat
         elif query_type == 'download':
             self._content_type = 'download'
-            self._downloadformat = downloadformat
+            self._format = format
         elif query_type == 'comments':
             self._content_type = 'comments'
         elif query_type == 'repo_list':
@@ -206,7 +206,7 @@ class NodeTranslator(BaseTranslator):
         nalist=None,
         elist=None,
         nelist=None,
-        downloadformat=None,
+        format=None,
         visformat=None,
         filename=None,
         rtype=None
@@ -225,7 +225,7 @@ class NodeTranslator(BaseTranslator):
         :param nalist: list of attributes, returns all attributes except this for node
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
-        :param downloadformat: file format to download e.g. cif, xyz
+        :param format: file format to download e.g. cif, xyz
         :param visformat: data format to visualise the node. Mainly used for structure,
             cif, kpoints. E.g. jsmol, chemdoodle
         :param filename: name of the file to return its content
@@ -246,7 +246,7 @@ class NodeTranslator(BaseTranslator):
             nalist=nalist,
             elist=elist,
             nelist=nelist,
-            downloadformat=downloadformat,
+            format=format,
             visformat=visformat,
             filename=filename,
             rtype=rtype
@@ -349,7 +349,7 @@ class NodeTranslator(BaseTranslator):
         elif self._content_type == 'download':
             # In this we do not return a dictionary but download the file in
             # specified format if available
-            data = {self._content_type: self.get_downloadable_data(node, self._downloadformat)}
+            data = {self._content_type: self.get_downloadable_data(node, self._format)}
 
         elif self._content_type == 'retrieved_inputs':
             # This type is only available for calc nodes. In case of job calc it
@@ -475,7 +475,7 @@ class NodeTranslator(BaseTranslator):
 
         return visualization_data
 
-    def get_downloadable_data(self, node, download_format=None):
+    def get_downloadable_data(self, node, format=None):
         """
         Generic function to download file in specified format.
         Actual definition is in child classes as the content to be
@@ -483,7 +483,7 @@ class NodeTranslator(BaseTranslator):
         to the resource
 
         :param node: node object
-        :param download_format: file extension format
+        :param format: file extension format
         :returns: data in selected format to download
 
         If this method is called by Node resource it will look for the type
@@ -498,7 +498,7 @@ class NodeTranslator(BaseTranslator):
             if subclass._aiida_type.split('.')[-1] == tclass.__name__:  # pylint: disable=protected-access
                 lowtrans = subclass
 
-        downloadable_data = lowtrans.get_downloadable_data(node, download_format=download_format)
+        downloadable_data = lowtrans.get_downloadable_data(node, format=format)
 
         return downloadable_data
 

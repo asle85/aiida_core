@@ -74,7 +74,7 @@ class StructureDataTranslator(DataTranslator):
         return response
 
     @staticmethod
-    def get_downloadable_data(node, download_format='cif'):
+    def get_downloadable_data(node, format='cif'):
         """
         Generic function extented for structure data
 
@@ -87,14 +87,14 @@ class StructureDataTranslator(DataTranslator):
 
         # This check is explicitly added here because sometimes
         # None is passed here as an value for download_format.
-        if download_format is None:
-            download_format = 'cif'
+        if format is None:
+            format = 'cif'
 
-        if download_format in node.get_export_formats():
+        if format in node.get_export_formats():
             try:
-                response['data'] = node._exportcontent(download_format)[0]  # pylint: disable=protected-access
+                response['data'] = node._exportcontent(format)[0]  # pylint: disable=protected-access
                 response['status'] = 200
-                response['filename'] = node.uuid + '_structure.' + download_format
+                response['filename'] = node.uuid + '_structure.' + format
             except LicensingException as exc:
                 response['status'] = 500
                 response['data'] = str(exc)

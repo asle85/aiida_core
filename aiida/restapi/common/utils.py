@@ -211,34 +211,19 @@ class Utils(object):
 
         # Query type (input, output, attributes, extras, visualization,
         # schema, statistics)
-        if path[0] == 'schema':
+        if path[0] in ['schema', 'statistics', 'types', 'download']:
             query_type = path.pop(0)
             if path:
-                raise RestInputValidationError('url requesting schema resources do not accept further fields')
-            else:
-                return (resource_type, page, node_id, query_type)
-        elif path[0] == 'statistics':
-            query_type = path.pop(0)
-            if path:
-                raise RestInputValidationError('url requesting statistics resources do not accept further fields')
-            else:
-                return (resource_type, page, node_id, query_type)
-        elif path[0] == 'types':
-            query_type = path.pop(0)
-            if path:
-                raise RestInputValidationError('url requesting types do not accept further fields')
-            else:
-                return (resource_type, page, node_id, query_type)
+                raise RestInputValidationError('Given url do not accept further fields')
         elif path[0] in ['links', 'contents']:
             path.pop(0)
             query_type = path.pop(0)
-            if not path:
-                return (resource_type, page, node_id, query_type)
         elif path[0] in ['repo']:
             path.pop(0)
             query_type = 'repo_' + path.pop(0)
-            if not path:
-                return (resource_type, page, node_id, query_type)
+
+        if not path:
+            return (resource_type, page, node_id, query_type)
 
         # Page (this has to be in any case the last field)
         if path[0] == 'page':
@@ -519,10 +504,11 @@ class Utils(object):
         nalist = None
         elist = None
         nelist = None
-        downloadformat = None
         visformat = None
         filename = None
         rtype = None
+        format = None
+        download = False
 
         # io tree limit parameters
         tree_in_limit = None
@@ -567,6 +553,8 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify nelist more than once')
         if 'format' in field_counts.keys() and field_counts['format'] > 1:
             raise RestInputValidationError('You cannot specify format more than once')
+        if 'download' in field_counts.keys() and field_counts['format'] > 1:
+            raise RestInputValidationError('You cannot specify download more than once')
         if 'visformat' in field_counts.keys() and field_counts['visformat'] > 1:
             raise RestInputValidationError('You cannot specify visformat more than once')
         if 'filename' in field_counts.keys() and field_counts['filename'] > 1:
@@ -580,7 +568,7 @@ class Utils(object):
 
         ## Extract results
         for field in field_list:
-
+            print (": ", field)
             if field[0] == 'limit':
                 if field[1] == '=':
                     limit = field[2]
@@ -631,9 +619,14 @@ class Utils(object):
 
             elif field[0] == 'format':
                 if field[1] == '=':
-                    downloadformat = field[2]
+                    format = field[2]
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'format'")
+            elif field[0] == 'download':
+                if field[1] == '=':
+                    download = field[2]
+                else:
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'download'")
 
             elif field[0] == 'visformat':
                 if field[1] == '=':
@@ -692,7 +685,7 @@ class Utils(object):
         #     limit = self.limit_default
 
         return (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, downloadformat, visformat, filename,
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat, filename,
             rtype, tree_in_limit, tree_out_limit
         )
 

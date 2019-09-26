@@ -183,6 +183,8 @@ class BaseResource(Resource):
         return self.utils.build_response(status=200, headers=headers, data=data)
 
 
+
+
 class Node(Resource):
     """
     Differs from BaseResource in trans.set_query() mostly because it takes
@@ -227,7 +229,7 @@ class Node(Resource):
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
         (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, downloadformat, visformat, filename,
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat, filename,
             rtype, tree_in_limit, tree_out_limit
         ) = self.utils.parse_query_string(query_string)
 
@@ -253,7 +255,7 @@ class Node(Resource):
         ## Treat the statistics
         elif query_type == 'statistics':
             (
-                limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, downloadformat, visformat,
+                limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat,
                 filename, rtype, tree_in_limit, tree_out_limit
             ) = self.utils.parse_query_string(query_string)
             headers = self.utils.build_headers(url=request.url, total_count=0)
@@ -272,6 +274,56 @@ class Node(Resource):
         elif query_type == 'tree':
             headers = self.utils.build_headers(url=request.url, total_count=0)
             results = self.trans.get_io_tree(node_id, tree_in_limit, tree_out_limit)
+
+        elif query_type == 'download':
+            from aiida.orm import load_node
+            node_obj = load_node(node_id)
+            node_type = node_obj.node_type
+            node_type = "aiida.restapi.translator.nodes." + node_type[:-1]
+
+            try:
+                import importlib
+                module_name, class_name = node_type.rsplit('.', 1)
+                module = importlib.import_module(module_name)
+                translator_class = getattr(module, class_name+"Translator")
+            except (ValueError, ImportError):
+                from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+                raise RestFeatureNotAvailable(
+                    'This endpoint is not available for node type {}'.format(node_obj.node_type
+                    )
+                )
+
+            params = request.args
+            if 'format' in params:
+                format = params.get('format', '')
+            if 'download' in params:
+                download = False if params.get('download') in ['false', False] else True
+
+            if format == 'materialscloud':
+                try:
+                    results = translator_class.get_visualization_data(node_obj)
+                except AttributeError:
+                    from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+                    raise RestFeatureNotAvailable(
+                        'For download endpoint, materialscloud format is not available for node type {}'.format(node_obj.node_type))
+
+
+            try:
+                results = translator_class.get_downloadable_data(node_obj)
+                if results:
+                    if results['status'] == 200:
+                        data = results['data']
+                        response = make_response(data)
+                        response.headers['content-type'] = 'application/octet-stream'
+                        response.headers['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                            results['filename']
+                        )
+                        return response
+                    results = results['data']
+            except AttributeError:
+                from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+                raise RestFeatureNotAvailable('This endpoint is not available for node type {}'.format(node_obj.node_type))
+
         else:
             ## Initialize the translator
             self.trans.set_query(
@@ -283,7 +335,7 @@ class Node(Resource):
                 nalist=nalist,
                 elist=elist,
                 nelist=nelist,
-                downloadformat=downloadformat,
+                format=format,
                 visformat=visformat,
                 filename=filename,
                 rtype=rtype

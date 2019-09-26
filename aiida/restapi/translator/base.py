@@ -347,7 +347,7 @@ class BaseTranslator(object):
         nalist=None,
         elist=None,
         nelist=None,
-        downloadformat=None,
+        format=None,
         visformat=None,
         filename=None,
         rtype=None

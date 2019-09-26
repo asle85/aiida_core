@@ -82,6 +82,8 @@ class App(Flask):
                     })
                     response.status_code = 500
 
+                print("error: ", response, type(error))
+
                 return response
 
         else:
@@ -151,10 +153,10 @@ class AiidaApi(Api):
             '/nodes/<id>/contents/attributes/',
             '/nodes/<id>/contents/extras/',
             '/nodes/<id>/contents/visualization/',
-            '/nodes/<id>/contents/download/',
             '/nodes/<id>/contents/comments/',
             '/nodes/<id>/repo/list/',
             '/nodes/<id>/repo/contents/',
+            '/nodes/<id>/download/',
             endpoint='nodes',
             strict_slashes=False,
             resource_class_kwargs=kwargs
