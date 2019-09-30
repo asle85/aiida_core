@@ -450,9 +450,83 @@ class ProcessNode(Node):
     def __init__(self, **kwargs):
         super(ProcessNode, self).__init__(**kwargs)
 
-        from aiida.restapi.translator.nodes.calculation import CalculationTranslator
-        self.trans = CalculationTranslator(**kwargs)
-        from aiida.orm import CalcJobNode as CalculationTclass
-        self.tclass = CalculationTclass
-
+        from aiida.restapi.translator.nodes.process.process import ProcessTranslator
+        self.trans = ProcessTranslator(**kwargs)
+        from aiida.orm import ProcessNode as ProcessTclass
+        self.tclass = ProcessTclass
         self.parse_pk_uuid = 'uuid'
+
+    def get(self, id=None):
+        """
+        Get method for the Process resource.
+
+        :param id: node identifier
+        :return: http response
+        """
+
+        ## Decode url parts
+        path = unquote(request.path)
+        query_string = unquote(request.query_string.decode('utf-8'))
+        url = unquote(request.url)
+        url_root = unquote(request.url_root)
+
+        ## Parse request
+        (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
+
+        print ("resource_type, page, node_id, query_type: ", resource_type, page, node_id, query_type)
+
+        from aiida.orm import load_node
+        node_obj = load_node(node_id)
+
+        if query_type == 'report':
+            report = self.trans.get_report(node_obj)
+            return report
+        elif query_type == 'status':
+            status = self.trans.get_status(node_obj)
+            return status
+
+        return "ok.."
+
+
+class CalcJobNode(ProcessNode):
+    """ Resource for CalcJobNode """
+
+    def __init__(self, **kwargs):
+        super(CalcJobNode, self).__init__(**kwargs)
+
+        from aiida.restapi.translator.nodes.process.calculation.calcjob import CalcJobTranslator
+        self.trans = CalcJobTranslator(**kwargs)
+        from aiida.orm import CalcJobNode as CalcJobTclass
+        self.tclass = CalcJobTclass
+        self.parse_pk_uuid = 'uuid'
+
+    def get(self, id=None):
+        """
+        Get method for the Process resource.
+
+        :param id: node identifier
+        :return: http response
+        """
+
+        ## Decode url parts
+        path = unquote(request.path)
+        query_string = unquote(request.query_string.decode('utf-8'))
+        url = unquote(request.url)
+        url_root = unquote(request.url_root)
+
+        ## Parse request
+        (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
+
+        print ("resource_type, page, node_id, query_type: ", resource_type, page, node_id, query_type)
+
+        from aiida.orm import load_node
+        node_obj = load_node(node_id)
+
+        if query_type == 'input_files':
+            report = self.trans.get_input_files(node_obj)
+            return report
+        elif query_type == 'output_files':
+            status = self.trans.get_output_files(node_obj)
+            return status
+
+        return "ok.."

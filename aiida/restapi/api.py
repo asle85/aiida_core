@@ -83,6 +83,8 @@ class App(Flask):
                     response.status_code = 500
 
                 print("error: ", response, type(error))
+                import traceback
+                print (traceback.format_exc())
 
                 return response
 
@@ -105,7 +107,7 @@ class AiidaApi(Api):
           configuration and PREFIX
         """
 
-        from aiida.restapi.resources import ProcessNode, Computer, User, Group, Node, ServerInfo
+        from aiida.restapi.resources import ProcessNode, CalcJobNode, Computer, User, Group, Node, ServerInfo
 
         self.app = app
 
@@ -164,11 +166,18 @@ class AiidaApi(Api):
 
         self.add_resource(
             ProcessNode,
-            '/processnodes/schema/',
-            '/processnodes/<id>/links/retrieved_inputs/',
-            '/processnodes/<id>/links/retrieved_outputs/',
-            #'/processnodes/<id>/reports/',
-            endpoint='processnodes',
+            '/processes/<id>/report/',
+            '/processes/<id>/status/',
+            endpoint='processes',
+            strict_slashes=False,
+            resource_class_kwargs=kwargs
+        )
+
+        self.add_resource(
+            CalcJobNode,
+            '/calcjobs/<id>/input_files/',
+            '/calcjobs/<id>/output_files/',
+            endpoint='calcjobs',
             strict_slashes=False,
             resource_class_kwargs=kwargs
         )

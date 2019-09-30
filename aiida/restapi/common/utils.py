@@ -211,7 +211,7 @@ class Utils(object):
 
         # Query type (input, output, attributes, extras, visualization,
         # schema, statistics)
-        if path[0] in ['schema', 'statistics', 'types', 'download']:
+        if path[0] in ['schema', 'statistics', 'types', 'download', 'report', 'status', 'input_files', 'output_files']:
             query_type = path.pop(0)
             if path:
                 raise RestInputValidationError('Given url do not accept further fields')
