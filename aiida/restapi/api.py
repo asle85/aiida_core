@@ -82,10 +82,6 @@ class App(Flask):
                     })
                     response.status_code = 500
 
-                print("error: ", response, type(error))
-                import traceback
-                print (traceback.format_exc())
-
                 return response
 
         else:
@@ -167,7 +163,6 @@ class AiidaApi(Api):
         self.add_resource(
             ProcessNode,
             '/processes/<id>/report/',
-            '/processes/<id>/status/',
             endpoint='processes',
             strict_slashes=False,
             resource_class_kwargs=kwargs

@@ -92,6 +92,24 @@ class RESTApiTestCase(AiidaTestCase):
             calc.put_object_from_filelike(handle, key='calcjob_inputs/aiida.in', force=True)
         calc.store()
 
+        # create log message for calcjob
+        import logging
+        from aiida.common.log import LOG_LEVEL_REPORT
+        from aiida.common.timezone import now
+        from aiida.orm import Log
+
+        log_record = {
+            'time': now(),
+            'loggername': 'loggername',
+            'levelname': logging.getLevelName(LOG_LEVEL_REPORT),
+            'dbnode_id': calc.id,
+            'message': 'This is a template record message',
+            'metadata': {
+                'content': 'test'
+            },
+        }
+        Log(**log_record)
+
         aiida_out = 'The output file\nof the CalcJob node'
         retrieved_outputs = orm.FolderData()
         # Add the calcjob_outputs folder with the aiida.out file to the FolderData node
@@ -707,48 +725,22 @@ class RESTApiTestSuite(RESTApiTestCase):
         Get the list of given calculation retrieved_inputs
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/links/retrieved_inputs'
+        url = self.get_url_prefix() + '/calcjobs/' + str(node_uuid) + '/input_files'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
-            self.assertEqual(response['data']['retrieved_inputs'], ['calcjob_inputs/aiida.in'])
+            self.assertEqual(response['data'], [{'name': 'calcjob_inputs', 'type': 'DIRECTORY'}])
 
     def test_calculation_retrieved_outputs(self):
         """
         Get the list of given calculation retrieved_outputs
         """
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/processnodes/' + str(node_uuid) + '/links/retrieved_outputs'
+        url = self.get_url_prefix() + '/calcjobs/' + str(node_uuid) + '/output_files'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
-            self.assertEqual(response['data']['retrieved_outputs'], ['calcjob_outputs/aiida.out'])
-
-    def test_calcfunction_retrieved_inputs(self):
-        """
-        Check that the given calcfunction does not have retrieved_inputs
-        """
-        node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
-        self.process_test(
-            'processnodes',
-            '/processnodes/' + str(node_uuid) + '/links/retrieved_inputs',
-            uuid=node_uuid,
-            result_name='retrieved_inputs',
-            empty_list=True
-        )
-
-    def test_calcfunction_retrieved_outputs(self):
-        """
-        Check that the given calcfunction does not have retrieved_outputs
-        """
-        node_uuid = self.get_dummy_data()['calculations'][2]['uuid']
-        self.process_test(
-            'processnodes',
-            '/processnodes/' + str(node_uuid) + '/links/retrieved_outputs',
-            uuid=node_uuid,
-            result_name='retrieved_outputs',
-            empty_list=True
-        )
+            self.assertEqual(response['data'], [{'name': 'calcjob_outputs', 'type': 'DIRECTORY'}])
 
     ############### calculation incoming  #############
     def test_calculation_inputs(self):
@@ -950,7 +942,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         from aiida.orm import load_node
 
         node_uuid = self.get_dummy_data()['cifdata'][0]['uuid']
-        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/contents/download'
+        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
         cif = load_node(node_uuid)._prepare_cif()[0]  # pylint: disable=protected-access
@@ -961,7 +953,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         test schema
         """
-        for nodetype in ['nodes', 'processnodes', 'computers', 'users', 'groups']:
+        for nodetype in ['nodes', 'computers', 'users', 'groups']:
             url = self.get_url_prefix() + '/' + nodetype + '/schema'
             with self.app.test_client() as client:
                 rv_obj = client.get(url)
@@ -1030,3 +1022,21 @@ class RESTApiTestSuite(RESTApiTestCase):
             response_value = client.get(url)
             response = json.loads(response_value.data)
             self.assertEqual(response['data']['repo_contents'], 'The input file\nof the CalcJob node')
+
+    def test_process_report(self):
+        """
+        Test process report
+        """
+        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
+        url = self.get_url_prefix() + '/processes/' + str(node_uuid) + '/report'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+
+            expected_keys = response['data'].keys()
+            for key in ['logs', 'scheduler_output', 'scheduler_error']:
+                self.assertIn(key, expected_keys)
+
+            expected_log_keys = response['data']['logs'][0].keys()
+            for key in ['time', 'loggername', 'levelname', 'dbnode_id', 'message']:
+                self.assertIn(key, expected_log_keys)

@@ -127,8 +127,8 @@ class BaseResource(Resource):
 
         # pylint: disable=unused-variable
         (
-            limit, offset, perpage, orderby, filters, _alist, _nalist, _elist, _nelist, _downloadformat, _visformat,
-            _filename, _rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
+            visformat, filename, rtype, tree_in_limit, tree_out_limit
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -183,8 +183,6 @@ class BaseResource(Resource):
         return self.utils.build_response(status=200, headers=headers, data=data)
 
 
-
-
 class Node(Resource):
     """
     Differs from BaseResource in trans.set_query() mostly because it takes
@@ -210,7 +208,7 @@ class Node(Resource):
         self.method_decorators = {'get': kwargs.get('get_decorators', [])}
 
     def get(self, id=None, page=None):  # pylint: disable=redefined-builtin,invalid-name,unused-argument
-        # pylint: disable=too-many-locals,too-many-statements,too-many-branches,fixme
+        # pylint: disable=too-many-locals,too-many-statements,too-many-branches,fixme,unused-variable
         """
         Get method for the Node resource.
 
@@ -229,8 +227,8 @@ class Node(Resource):
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
         (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat, filename,
-            rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
+            visformat, filename, rtype, tree_in_limit, tree_out_limit
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -255,8 +253,8 @@ class Node(Resource):
         ## Treat the statistics
         elif query_type == 'statistics':
             (
-                limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat,
-                filename, rtype, tree_in_limit, tree_out_limit
+                limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
+                visformat, filename, rtype, tree_in_limit, tree_out_limit
             ) = self.utils.parse_query_string(query_string)
             headers = self.utils.build_headers(url=request.url, total_count=0)
             if filters:
@@ -279,34 +277,35 @@ class Node(Resource):
             from aiida.orm import load_node
             node_obj = load_node(node_id)
             node_type = node_obj.node_type
-            node_type = "aiida.restapi.translator.nodes." + node_type[:-1]
+            node_type = 'aiida.restapi.translator.nodes.' + node_type[:-1]
 
             try:
                 import importlib
                 module_name, class_name = node_type.rsplit('.', 1)
                 module = importlib.import_module(module_name)
-                translator_class = getattr(module, class_name+"Translator")
+                translator_class = getattr(module, class_name + 'Translator')
             except (ValueError, ImportError):
                 from aiida.restapi.common.exceptions import RestFeatureNotAvailable
                 raise RestFeatureNotAvailable(
-                    'This endpoint is not available for node type {}'.format(node_obj.node_type
-                    )
+                    'This endpoint is not available for node type {}'.format(node_obj.node_type)
                 )
 
             params = request.args
             if 'format' in params:
-                format = params.get('format', '')
+                download_format = params.get('format', '')
             if 'download' in params:
                 download = False if params.get('download') in ['false', False] else True
 
-            if format == 'materialscloud':
+            if download_format == 'materialscloud':
                 try:
                     results = translator_class.get_visualization_data(node_obj)
                 except AttributeError:
                     from aiida.restapi.common.exceptions import RestFeatureNotAvailable
                     raise RestFeatureNotAvailable(
-                        'For download endpoint, materialscloud format is not available for node type {}'.format(node_obj.node_type))
-
+                        'For download endpoint, materialscloud format is not available for node type {}'.format(
+                            node_obj.node_type
+                        )
+                    )
 
             try:
                 results = translator_class.get_downloadable_data(node_obj)
@@ -322,7 +321,9 @@ class Node(Resource):
                     results = results['data']
             except AttributeError:
                 from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-                raise RestFeatureNotAvailable('This endpoint is not available for node type {}'.format(node_obj.node_type))
+                raise RestFeatureNotAvailable(
+                    'This endpoint is not available for node type {}'.format(node_obj.node_type)
+                )
 
         else:
             ## Initialize the translator
@@ -335,7 +336,7 @@ class Node(Resource):
                 nalist=nalist,
                 elist=elist,
                 nelist=nelist,
-                format=format,
+                format=download_format,
                 visformat=visformat,
                 filename=filename,
                 rtype=rtype
@@ -452,11 +453,8 @@ class ProcessNode(Node):
 
         from aiida.restapi.translator.nodes.process.process import ProcessTranslator
         self.trans = ProcessTranslator(**kwargs)
-        from aiida.orm import ProcessNode as ProcessTclass
-        self.tclass = ProcessTclass
-        self.parse_pk_uuid = 'uuid'
 
-    def get(self, id=None):
+    def get(self, id=None, page=None):  # pylint: disable=redefined-builtin
         """
         Get method for the Process resource.
 
@@ -466,26 +464,35 @@ class ProcessNode(Node):
 
         ## Decode url parts
         path = unquote(request.path)
-        query_string = unquote(request.query_string.decode('utf-8'))
         url = unquote(request.url)
         url_root = unquote(request.url_root)
 
         ## Parse request
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
-        print ("resource_type, page, node_id, query_type: ", resource_type, page, node_id, query_type)
-
-        from aiida.orm import load_node
-        node_obj = load_node(node_id)
-
+        results = None
         if query_type == 'report':
+            from aiida.orm import load_node
+            node_obj = load_node(node_id)
             report = self.trans.get_report(node_obj)
-            return report
-        elif query_type == 'status':
-            status = self.trans.get_status(node_obj)
-            return status
+            results = report
 
-        return "ok.."
+        ## Build response and return it
+        headers = self.utils.build_headers(url=request.url, total_count=1)
+
+        ## Build response
+        data = dict(
+            method=request.method,
+            url=url,
+            url_root=url_root,
+            path=path,
+            id=node_id,
+            query_string=request.query_string.decode('utf-8'),
+            resource_type=resource_type,
+            data=results
+        )
+
+        return self.utils.build_response(status=200, headers=headers, data=data)
 
 
 class CalcJobNode(ProcessNode):
@@ -496,11 +503,8 @@ class CalcJobNode(ProcessNode):
 
         from aiida.restapi.translator.nodes.process.calculation.calcjob import CalcJobTranslator
         self.trans = CalcJobTranslator(**kwargs)
-        from aiida.orm import CalcJobNode as CalcJobTclass
-        self.tclass = CalcJobTclass
-        self.parse_pk_uuid = 'uuid'
 
-    def get(self, id=None):
+    def get(self, id=None, page=None):  # pylint: disable=redefined-builtin
         """
         Get method for the Process resource.
 
@@ -510,23 +514,38 @@ class CalcJobNode(ProcessNode):
 
         ## Decode url parts
         path = unquote(request.path)
-        query_string = unquote(request.query_string.decode('utf-8'))
         url = unquote(request.url)
         url_root = unquote(request.url_root)
 
         ## Parse request
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
-        print ("resource_type, page, node_id, query_type: ", resource_type, page, node_id, query_type)
+        results = None
+
+        params = request.args
+        filename = params.get('filename', '')
 
         from aiida.orm import load_node
         node_obj = load_node(node_id)
 
         if query_type == 'input_files':
-            report = self.trans.get_input_files(node_obj)
-            return report
+            results = self.trans.get_input_files(node_obj, filename)
         elif query_type == 'output_files':
-            status = self.trans.get_output_files(node_obj)
-            return status
+            results = self.trans.get_output_files(node_obj, filename)
 
-        return "ok.."
+        ## Build response and return it
+        headers = self.utils.build_headers(url=request.url, total_count=1)
+
+        ## Build response
+        data = dict(
+            method=request.method,
+            url=url,
+            url_root=url_root,
+            path=path,
+            id=node_id,
+            query_string=request.query_string.decode('utf-8'),
+            resource_type=resource_type,
+            data=results
+        )
+
+        return self.utils.build_response(status=200, headers=headers, data=data)

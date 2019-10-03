@@ -14,11 +14,8 @@ Translator for calculation node
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
-import os
 
 from aiida.restapi.translator.nodes.process.process import ProcessTranslator
-from aiida.restapi.common.exceptions import RestInputValidationError
-from aiida.orm.utils.repository import FileType
 
 
 class CalcJobTranslator(ProcessTranslator):
@@ -44,71 +41,41 @@ class CalcJobTranslator(ProcessTranslator):
         # basic query_help object
         super(CalcJobTranslator, self).__init__(Class=self.__class__, **kwargs)
 
-
     @staticmethod
-    def get_files_list(node_obj, dir_obj=None, files=None, prefix=None):
-        """
-        Return the list of all files contained in the node object repository
-        If a directory object `dir_obj` of the repository is passed, get the list of all files
-        recursively in the specified directory
-
-        :param node_obj: node object
-        :param dir_obj: directory in which files will be searched
-        :param files: list of files if any
-        :param prefix: file name prefix if any
-        :return: the list of files
-        """
-        if files is None:
-            files = []
-        if prefix is None:
-            prefix = []
-
-        if dir_obj:
-            flist = node_obj.list_objects(dir_obj)
-        else:
-            flist = node_obj.list_objects()
-
-        for fname, ftype in flist:
-            if ftype == FileType.FILE:
-                filename = os.path.join(*(prefix + [fname]))
-                files.append(filename)
-            elif ftype == FileType.DIRECTORY:
-                CalcJobTranslator.get_files_list(node_obj, fname, files, prefix + [fname])
-        return files
-
-    @staticmethod
-    def get_input_files(node):
+    def get_input_files(node, filename):
         """
         Get the submitted input files for job calculation
         :param node: aiida node
         :return: the retrieved input files for job calculation
         """
+        if node.node_type.startswith('process.calculation.calcjob.'):
+            from aiida.restapi.translator.nodes.node import NodeTranslator
+            return NodeTranslator.get_repo_list(node, filename)
 
-        try:
-            retrieved = CalcJobTranslator.get_files_list(node)
-        except:
-            retrieved = 'Error in getting input files for CalcJob.'
-
-        return retrieved
-
-
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+        raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))
 
     @staticmethod
-    def get_output_files(node):
+    def get_output_files(node, filename):
         """
         Get the retrieved output files for job calculation
         :param node: aiida node
         :return: the retrieved output files for job calculation
         """
 
-        retrieved_folder_node = node.outputs.retrieved
-        response = {}
+        from aiida.common.exceptions import NotExistent
 
-        if retrieved_folder_node is None:
-            response['status'] = 200
-            response['data'] = 'This node does not have retrieved folder'
-            return response
+        if node.node_type.startswith('process.calculation.calcjob.'):
+            try:
+                retrieved_folder_node = node.outputs.retrieved
+            except NotExistent:
+                response = {}
+                response['status'] = 200
+                response['data'] = 'This node does not have retrieved folder'
+                return response
 
-        retrieved = CalcJobTranslator.get_files_list(retrieved_folder_node)
-        return retrieved
+            from aiida.restapi.translator.nodes.node import NodeTranslator
+            return NodeTranslator.get_repo_list(retrieved_folder_node, filename)
 
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+        raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))

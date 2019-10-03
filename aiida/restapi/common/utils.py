@@ -507,7 +507,7 @@ class Utils(object):
         visformat = None
         filename = None
         rtype = None
-        format = None
+        download_format = None
         download = False
 
         # io tree limit parameters
@@ -568,7 +568,6 @@ class Utils(object):
 
         ## Extract results
         for field in field_list:
-            print (": ", field)
             if field[0] == 'limit':
                 if field[1] == '=':
                     limit = field[2]
@@ -619,7 +618,7 @@ class Utils(object):
 
             elif field[0] == 'format':
                 if field[1] == '=':
-                    format = field[2]
+                    download_format = field[2]
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'format'")
             elif field[0] == 'download':
@@ -685,8 +684,8 @@ class Utils(object):
         #     limit = self.limit_default
 
         return (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, format, download, visformat, filename,
-            rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
+            visformat, filename, rtype, tree_in_limit, tree_out_limit
         )
 
     def parse_query_string(self, query_string):

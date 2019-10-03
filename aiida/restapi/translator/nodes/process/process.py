@@ -48,24 +48,23 @@ class ProcessTranslator(NodeTranslator):
     @staticmethod
     def get_report(process):
         """Show the log report for one or multiple processes."""
-        from aiida.cmdline.utils.common import get_calcjob_report, get_workchain_report, get_process_function_report
-        from aiida.orm import CalcJobNode, WorkChainNode, CalcFunctionNode, WorkFunctionNode
+        from aiida.orm import Log, CalcJobNode
+
+        def get_dict(log):
+            """Returns the dict representation of log object"""
+            return {
+                'time': log.time,
+                'loggername': log.loggername,
+                'levelname': log.levelname,
+                'dbnode_id': log.dbnode_id,
+                'message': log.message,
+            }
+
+        report = {}
+        report['logs'] = [get_dict(log) for log in Log.objects.get_logs_for(process)]
 
         if isinstance(process, CalcJobNode):
-            report = get_calcjob_report(process)
-        elif isinstance(process, WorkChainNode):
-            report = get_workchain_report(process) #levelname, indent_size, max_depth??
-        elif isinstance(process, (CalcFunctionNode, WorkFunctionNode)):
-            report = get_process_function_report(process)
-        else:
-            report = 'Nothing to show for node type {}'.format(process.__class__)
+            report['scheduler_output'] = process.get_scheduler_stdout()
+            report['scheduler_error'] = process.get_scheduler_stderr()
 
         return report
-
-    @staticmethod
-    def get_status(process):
-        """Print the status of one or multiple processes."""
-        from aiida.cmdline.utils.ascii_vis import format_call_graph
-
-        graph = format_call_graph(process)
-        return graph
