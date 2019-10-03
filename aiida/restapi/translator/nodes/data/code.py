@@ -40,13 +40,12 @@ class CodeTranslator(DataTranslator):
         super(CodeTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
-    def get_visualization_data(node, visformat=None):
+    def get_derived_properties(node):
         """
         Generic function extented for codes data. Currently
         it is not implemented.
 
         :param node: node object that has to be visualized
-        :param visformat: visualization format
         :returns: raise RestFeatureNotAvailable exception
         """
 

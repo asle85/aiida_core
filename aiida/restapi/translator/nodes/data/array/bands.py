@@ -40,7 +40,7 @@ class BandsDataTranslator(DataTranslator):
         super(BandsDataTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
-    def get_visualization_data(node, visformat=None):
+    def get_derived_properties(node):
         """
         Returns: data in a format required by dr.js to visualize a 2D plot
         with multiple data series.

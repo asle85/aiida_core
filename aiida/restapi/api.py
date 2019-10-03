@@ -150,7 +150,7 @@ class AiidaApi(Api):
             '/nodes/<id>/links/tree/',
             '/nodes/<id>/contents/attributes/',
             '/nodes/<id>/contents/extras/',
-            '/nodes/<id>/contents/visualization/',
+            '/nodes/<id>/contents/derived_properties/',
             '/nodes/<id>/contents/comments/',
             '/nodes/<id>/repo/list/',
             '/nodes/<id>/repo/contents/',

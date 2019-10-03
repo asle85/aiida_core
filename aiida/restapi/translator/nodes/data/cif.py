@@ -39,28 +39,15 @@ class CifDataTranslator(DataTranslator):
 
     #pylint: disable=arguments-differ,redefined-builtin,protected-access
     @staticmethod
-    def get_visualization_data(node, visformat=None):
+    def get_derived_properties(node):
         """
-        Returns: data in specified format. If format is not specified returns data
-        in a format required by chemdoodle to visualize a structure.
+        Returns: derived properties of the cif
         """
         response = {}
-        response['str_viz_info'] = {}
-
-        if visformat is None:
-            visformat = 'cif'
-
-        if visformat in node.get_export_formats():
-            try:
-                response['str_viz_info']['data'] = node._exportcontent(format)[0]  # pylint: disable=protected-access
-                response['str_viz_info']['format'] = visformat
-            except LicensingException as exc:
-                response = str(exc)
 
         ## Add extra information
-        #response["dimensionality"] = node.get_dimensionality()
-        #response["pbc"] = node.pbc
-        #response["formula"] = node.get_formula()
+        response['dimensionality'] = node.get_dimensionality()
+        response['formula'] = node.get_formula()
 
         return response
 

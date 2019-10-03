@@ -41,14 +41,15 @@ class UpfDataTranslator(DataTranslator):
         super(UpfDataTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
-    def get_visualization_data(node, visformat=None):
+    def get_derived_properties(node):
+        """
+        :param node: node object that has to be visualized
+        :returns: raise RestFeatureNotAvailable exception
         """
 
-        Returns: data in a format required by dr.js to visualize a 2D plot
-        with multiple data series.
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
-        """
-        return []
+        raise RestFeatureNotAvailable('This endpoint is not available for upf.')
 
     @staticmethod
     def get_downloadable_data(node, download_format=None):

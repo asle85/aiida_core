@@ -40,7 +40,7 @@ class KpointsDataTranslator(DataTranslator):
         super(KpointsDataTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
-    def get_visualization_data(node, visformat=None):
+    def get_derived_properties(node):
         # pylint: disable=too-many-locals,too-many-statements,too-many-branches
         """
 

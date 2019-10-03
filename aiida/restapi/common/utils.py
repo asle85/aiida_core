@@ -209,8 +209,6 @@ class Utils(object):
         if not path:
             return (resource_type, page, node_id, query_type)
 
-        # Query type (input, output, attributes, extras, visualization,
-        # schema, statistics)
         if path[0] in ['schema', 'statistics', 'types', 'download', 'report', 'status', 'input_files', 'output_files']:
             query_type = path.pop(0)
             if path:
@@ -504,7 +502,6 @@ class Utils(object):
         nalist = None
         elist = None
         nelist = None
-        visformat = None
         filename = None
         rtype = None
         download_format = None
@@ -555,8 +552,6 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify format more than once')
         if 'download' in field_counts.keys() and field_counts['format'] > 1:
             raise RestInputValidationError('You cannot specify download more than once')
-        if 'visformat' in field_counts.keys() and field_counts['visformat'] > 1:
-            raise RestInputValidationError('You cannot specify visformat more than once')
         if 'filename' in field_counts.keys() and field_counts['filename'] > 1:
             raise RestInputValidationError('You cannot specify filename more than once')
         if 'rtype' in field_counts.keys() and field_counts['rtype'] > 1:
@@ -627,12 +622,6 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'download'")
 
-            elif field[0] == 'visformat':
-                if field[1] == '=':
-                    visformat = field[2]
-                else:
-                    raise RestInputValidationError("only assignment operator '=' is permitted after 'visformat'")
-
             elif field[0] == 'filename':
                 if field[1] == '=':
                     filename = field[2]
@@ -684,8 +673,8 @@ class Utils(object):
         #     limit = self.limit_default
 
         return (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-            visformat, filename, rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
+            rtype, tree_in_limit, tree_out_limit
         )
 
     def parse_query_string(self, query_string):

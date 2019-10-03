@@ -127,8 +127,8 @@ class BaseResource(Resource):
 
         # pylint: disable=unused-variable
         (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-            visformat, filename, rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
+            rtype, tree_in_limit, tree_out_limit
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -227,8 +227,8 @@ class Node(Resource):
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
         (
-            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-            visformat, filename, rtype, tree_in_limit, tree_out_limit
+            limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
+            rtype, tree_in_limit, tree_out_limit
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -254,7 +254,7 @@ class Node(Resource):
         elif query_type == 'statistics':
             (
                 limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-                visformat, filename, rtype, tree_in_limit, tree_out_limit
+                filename, rtype, tree_in_limit, tree_out_limit
             ) = self.utils.parse_query_string(query_string)
             headers = self.utils.build_headers(url=request.url, total_count=0)
             if filters:
@@ -298,7 +298,7 @@ class Node(Resource):
 
             if download_format == 'materialscloud':
                 try:
-                    results = translator_class.get_visualization_data(node_obj)
+                    results = translator_class.get_derived_properties(node_obj)
                 except AttributeError:
                     from aiida.restapi.common.exceptions import RestFeatureNotAvailable
                     raise RestFeatureNotAvailable(
@@ -337,7 +337,6 @@ class Node(Resource):
                 elist=elist,
                 nelist=nelist,
                 format=download_format,
-                visformat=visformat,
                 filename=filename,
                 rtype=rtype
             )

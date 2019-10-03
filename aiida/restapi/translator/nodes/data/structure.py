@@ -43,32 +43,14 @@ class StructureDataTranslator(DataTranslator):
         super(StructureDataTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
-    def get_visualization_data(node, visformat='xsf'):
+    def get_derived_properties(node):
         """
-        Returns: data in specified format. If visformat is not specified returns data
-        in xsf format in order to visualize the structure with JSmol.
+        Returns: derived properties of the structure.
         """
         response = {}
-        response['str_viz_info'] = {}
-
-        # This check is explicitly added here because sometimes
-        # None is passed here as an value for visformat.
-        if visformat is None:
-            visformat = 'xsf'
-
-        if visformat in node.get_export_formats():
-            try:
-                response['str_viz_info']['data'] = node._exportcontent(visformat)[0].decode('utf-8')  # pylint: disable=protected-access
-                response['str_viz_info']['format'] = visformat
-            except LicensingException as exc:
-                response = str(exc)
-
-        else:
-            raise RestInputValidationError('The format {} is not supported.'.format(visformat))
 
         # Add extra information
         response['dimensionality'] = node.get_dimensionality()
-        response['pbc'] = node.pbc
         response['formula'] = node.get_formula()
 
         return response

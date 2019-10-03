@@ -47,7 +47,6 @@ class NodeTranslator(BaseTranslator):
     _elist = None
     _nelist = None
     _format = None
-    _visformat = None
     _filename = None
     _rtype = None
 
@@ -130,16 +129,7 @@ class NodeTranslator(BaseTranslator):
         self._backend = get_manager().get_backend()
 
     def set_query_type(
-        self,
-        query_type,
-        alist=None,
-        nalist=None,
-        elist=None,
-        nelist=None,
-        format=None,
-        visformat=None,
-        filename=None,
-        rtype=None
+        self, query_type, alist=None, nalist=None, elist=None, nelist=None, format=None, filename=None, rtype=None
     ):
         """
         sets one of the mutually exclusive values for self._result_type and
@@ -162,9 +152,8 @@ class NodeTranslator(BaseTranslator):
             self._content_type = 'extras'
             self._elist = elist
             self._nelist = nelist
-        elif query_type == 'visualization':
-            self._content_type = 'visualization'
-            self._visformat = visformat
+        elif query_type == 'derived_properties':
+            self._content_type = 'derived_properties'
         elif query_type == 'download':
             self._content_type = 'download'
             self._format = format
@@ -207,7 +196,6 @@ class NodeTranslator(BaseTranslator):
         elist=None,
         nelist=None,
         format=None,
-        visformat=None,
         filename=None,
         rtype=None
     ):
@@ -226,8 +214,6 @@ class NodeTranslator(BaseTranslator):
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
         :param format: file format to download e.g. cif, xyz
-        :param visformat: data format to visualise the node. Mainly used for structure,
-            cif, kpoints. E.g. jsmol, chemdoodle
         :param filename: name of the file to return its content
         :param rtype: return type of the file
         """
@@ -247,7 +233,6 @@ class NodeTranslator(BaseTranslator):
             elist=elist,
             nelist=nelist,
             format=format,
-            visformat=visformat,
             filename=filename,
             rtype=rtype
         )
@@ -341,10 +326,8 @@ class NodeTranslator(BaseTranslator):
         # actually works only for data derived classes)
         # TODO refactor the code so to have this option only in data and
         # derived classes
-        elif self._content_type == 'visualization':
-            # In this we do not return a dictionary but just an object and
-            # the dictionary format is set by get_visualization_data
-            data = {self._content_type: self.get_visualization_data(node, self._visformat)}
+        elif self._content_type == 'derived_properties':
+            data = {self._content_type: self.get_derived_properties(node)}
 
         elif self._content_type == 'download':
             # In this we do not return a dictionary but download the file in
@@ -446,17 +429,15 @@ class NodeTranslator(BaseTranslator):
                 results.update(self._get_subclasses(parent=app_module, parent_class=parent_class))
         return results
 
-    def get_visualization_data(self, node, visformat=None):
+    def get_derived_properties(self, node):
         """
-        Generic function to get the data required to visualize the node with
-        a specific plugin.
-        Actual definition is in child classes as the content to be be
-        returned and its format depends on the visualization plugin specific
+        Generic function to get the derived properties of the node.
+        Actual definition is in child classes as the content to be
+        returned depends on the plugin specific
         to the resource
 
         :param node: node object that has to be visualized
-        :param visformat: visualization format
-        :returns: data selected and serialized for visualization
+        :returns: derived properties of the node
 
         If this method is called by Node resource it will look for the type
         of object and invoke the correct method in the lowest-compatible
@@ -471,15 +452,15 @@ class NodeTranslator(BaseTranslator):
             if subclass._aiida_type.split('.')[-1] == tclass.__name__:  # pylint: disable=protected-access
                 lowtrans = subclass
 
-        visualization_data = lowtrans.get_visualization_data(node, visformat=visformat)
+        derived_properties = lowtrans.get_derived_properties(node)
 
-        return visualization_data
+        return derived_properties
 
     def get_downloadable_data(self, node, format=None):
         """
         Generic function to download file in specified format.
         Actual definition is in child classes as the content to be
-        returned and its format depends on the visualization plugin specific
+        returned and its format depends on the download plugin specific
         to the resource
 
         :param node: node object
@@ -507,7 +488,7 @@ class NodeTranslator(BaseTranslator):
         """
         Generic function to return output of calc inputls verdi command.
         Actual definition is in child classes as the content to be
-        returned and its format depends on the visualization plugin specific
+        returned and its format depends on the plugin specific
         to the resource
 
         :param node: node object
@@ -521,7 +502,7 @@ class NodeTranslator(BaseTranslator):
         """
         Generic function to return output of calc outputls verdi command.
         Actual definition is in child classes as the content to be
-        returned and its format depends on the visualization plugin specific
+        returned and its format depends on the plugin specific
         to the resource
 
         :param node: node object
