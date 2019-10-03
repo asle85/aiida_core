@@ -37,19 +37,19 @@ class CifDataTranslator(DataTranslator):
         """
         super(CifDataTranslator, self).__init__(Class=self.__class__, **kwargs)
 
-    #pylint: disable=arguments-differ,redefined-builtin,protected-access
     @staticmethod
     def get_derived_properties(node):
         """
-        Returns: derived properties of the cif
+        Generic function extended for cif. Currently
+        it is not implemented.
+
+        :param node: node object
+        :returns: raise RestFeatureNotAvailable exception
         """
-        response = {}
 
-        ## Add extra information
-        response['dimensionality'] = node.get_dimensionality()
-        response['formula'] = node.get_formula()
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
-        return response
+        raise RestFeatureNotAvailable('This endpoint is not available for CifData.')
 
     #pylint: disable=arguments-differ,redefined-builtin,protected-access
     @staticmethod

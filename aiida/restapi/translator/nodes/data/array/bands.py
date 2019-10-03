@@ -57,10 +57,6 @@ class BandsDataTranslator(DataTranslator):
         json_string = node._exportcontent('json', comments=False)  # pylint: disable=protected-access
         json_content = json.loads(json_string[0])
 
-        # Add Ylabel which by default is not exported
-        y_label = node.label + ' ({})'.format(node.get_attribute('units'))
-        json_content['Y_label'] = y_label
-
         return json_content
 
     @staticmethod

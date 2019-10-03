@@ -42,10 +42,10 @@ class CodeTranslator(DataTranslator):
     @staticmethod
     def get_derived_properties(node):
         """
-        Generic function extented for codes data. Currently
+        Generic function extended for codes data. Currently
         it is not implemented.
 
-        :param node: node object that has to be visualized
+        :param node: node object
         :returns: raise RestFeatureNotAvailable exception
         """
 

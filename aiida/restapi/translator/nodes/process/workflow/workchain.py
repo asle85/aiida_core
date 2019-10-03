@@ -42,9 +42,23 @@ class WorkChainTranslator(ProcessTranslator):
         super(WorkChainTranslator, self).__init__(Class=self.__class__, **kwargs)
 
     @staticmethod
+    def get_derived_properties(node):
+        """
+        Generic function extended for workchain. Currently
+        it is not implemented.
+
+        :param node: node object
+        :returns: raise RestFeatureNotAvailable exception
+        """
+
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+
+        raise RestFeatureNotAvailable('This endpoint is not available for WorkChains.')
+
+    @staticmethod
     def get_downloadable_data(node, download_format=None):
         """
-        Generic function extended for calcfunction processes. Currently
+        Generic function extended for workchain processes. Currently
         it is not implemented.
 
         :param node: node object that has to be downloaded

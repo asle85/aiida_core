@@ -43,7 +43,7 @@ class UpfDataTranslator(DataTranslator):
     @staticmethod
     def get_derived_properties(node):
         """
-        :param node: node object that has to be visualized
+        :param node: node object
         :returns: raise RestFeatureNotAvailable exception
         """
 

@@ -81,6 +81,20 @@ class CalcJobTranslator(ProcessTranslator):
         raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))
 
     @staticmethod
+    def get_derived_properties(node):
+        """
+        Generic function extended for calcjob. Currently
+        it is not implemented.
+
+        :param node: node object
+        :returns: raise RestFeatureNotAvailable exception
+        """
+
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+
+        raise RestFeatureNotAvailable('This endpoint is not available for CalcJobs.')
+
+    @staticmethod
     def get_downloadable_data(node, download_format=None):
         """
         Generic function extended for calcjob processes. Currently
