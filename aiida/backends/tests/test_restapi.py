@@ -848,8 +848,6 @@ class RESTApiTestSuite(RESTApiTestCase):
         """
         Get the list of give calculation incoming
         """
-        from aiida.backends.tests.test_dataclasses import simplify
-
         node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
         url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '/contents/derived_properties'
         with self.app.test_client() as client:
@@ -865,6 +863,19 @@ class RESTApiTestSuite(RESTApiTestCase):
             )
             self.assertEqual(response['data']['derived_properties']['formula'], 'Ba')
             RESTApiTestCase.compare_extra_response_data(self, 'nodes', url, response, uuid=node_uuid)
+
+    def test_structure_download(self):
+        """
+        Test download of structure file
+        """
+        from aiida.orm import load_node
+
+        node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
+        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download?format=xsf'
+        with self.app.test_client() as client:
+            rv_obj = client.get(url)
+        structure_data = load_node(node_uuid)._exportcontent('xsf')[0]  # pylint: disable=protected-access
+        self.assertEqual(rv_obj.data, structure_data)
 
     def test_cif(self):
         """

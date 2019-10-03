@@ -273,57 +273,47 @@ class Node(Resource):
             headers = self.utils.build_headers(url=request.url, total_count=0)
             results = self.trans.get_io_tree(node_id, tree_in_limit, tree_out_limit)
 
-        elif query_type == 'download':
-            from aiida.orm import load_node
-            node_obj = load_node(node_id)
-            node_type = node_obj.node_type
-            node_type = 'aiida.restapi.translator.nodes.' + node_type[:-1]
-
-            try:
-                import importlib
-                module_name, class_name = node_type.rsplit('.', 1)
-                module = importlib.import_module(module_name)
-                translator_class = getattr(module, class_name + 'Translator')
-            except (ValueError, ImportError):
-                from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-                raise RestFeatureNotAvailable(
-                    'This endpoint is not available for node type {}'.format(node_obj.node_type)
-                )
-
-            params = request.args
-            if 'format' in params:
-                download_format = params.get('format', '')
-            if 'download' in params:
-                download = False if params.get('download') in ['false', False] else True
-
-            if download_format == 'materialscloud':
-                try:
-                    results = translator_class.get_derived_properties(node_obj)
-                except AttributeError:
-                    from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-                    raise RestFeatureNotAvailable(
-                        'For download endpoint, materialscloud format is not available for node type {}'.format(
-                            node_obj.node_type
-                        )
-                    )
-
-            try:
-                results = translator_class.get_downloadable_data(node_obj)
-                if results:
-                    if results['status'] == 200:
-                        data = results['data']
-                        response = make_response(data)
-                        response.headers['content-type'] = 'application/octet-stream'
-                        response.headers['Content-Disposition'] = 'attachment; filename="{}"'.format(
-                            results['filename']
-                        )
-                        return response
-                    results = results['data']
-            except AttributeError:
-                from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-                raise RestFeatureNotAvailable(
-                    'This endpoint is not available for node type {}'.format(node_obj.node_type)
-                )
+        # elif query_type == 'download':
+        #     from aiida.orm import load_node
+        #     node_obj = load_node(node_id)
+        #     node_type = node_obj.node_type
+        #     node_type = "aiida.restapi.translator.nodes." + node_type[:-1]
+        #
+        #     try:
+        #         import importlib
+        #         module_name, class_name = node_type.rsplit('.', 1)
+        #         module = importlib.import_module(module_name)
+        #         translator_class = getattr(module, class_name+"Translator")
+        #     except (ValueError, ImportError):
+        #         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+        #         raise RestFeatureNotAvailable(
+        #             'This endpoint is not available for node type {}'.format(node_obj.node_type
+        #             )
+        #         )
+        #
+        #     params = request.args
+        #     if 'format' in params:
+        #         format = params.get('format', '')
+        #     if 'download' in params:
+        #         download = False if params.get('download') in ['false', False] else True
+        #
+        #
+        #     try:
+        #         results = translator_class.get_downloadable_data(node_obj)
+        #         if results:
+        #             if results['status'] == 200:
+        #                 data = results['data']
+        #                 response = make_response(data)
+        #                 response.headers['content-type'] = 'application/octet-stream'
+        #                 response.headers['Content-Disposition'] = 'attachment; filename="{}"'.format(
+        #                     results['filename']
+        #                 )
+        #                 return response
+        #             results = results['data']
+        #     except AttributeError:
+        #         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+        #         raise RestFeatureNotAvailable('This endpoint is not available for node type {}'.format(
+        #             node_obj.node_type))
 
         else:
             ## Initialize the translator
@@ -336,7 +326,8 @@ class Node(Resource):
                 nalist=nalist,
                 elist=elist,
                 nelist=nelist,
-                format=download_format,
+                download_format=download_format,
+                download=download,
                 filename=filename,
                 rtype=rtype
             )
@@ -359,7 +350,7 @@ class Node(Resource):
                 ## Retrieve results
                 results = self.trans.get_results()
 
-                if query_type == 'download' and results:
+                if query_type == 'download' and download not in ['false', 'False', False] and results:
                     if results['download']['status'] == 200:
                         data = results['download']['data']
                         response = make_response(data)

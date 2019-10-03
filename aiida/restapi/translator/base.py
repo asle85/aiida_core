@@ -347,8 +347,8 @@ class BaseTranslator(object):
         nalist=None,
         elist=None,
         nelist=None,
-        format=None,
-        visformat=None,
+        download_format=None,
+        download=None,
         filename=None,
         rtype=None
     ):
@@ -367,9 +367,8 @@ class BaseTranslator(object):
         :param nalist: list of attributes, returns all attributes except this for node
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
-        :param downloadformat: file format to download e.g. cif, xyz
-        :param visformat: data format to visualise the node. Mainly used for structure,
-            cif, kpoints. E.g. jsmol, chemdoodle
+        :param download_format: file format to download e.g. cif, xyz
+        :param download: flag specifying if file has to be downloaded or visualized
         :param filename: name of the file to return its content
         :param rtype: return type of the file
         """

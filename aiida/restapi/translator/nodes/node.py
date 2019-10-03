@@ -46,7 +46,8 @@ class NodeTranslator(BaseTranslator):
     _nalist = None
     _elist = None
     _nelist = None
-    _format = None
+    _download_format = None
+    _download = None
     _filename = None
     _rtype = None
 
@@ -129,7 +130,16 @@ class NodeTranslator(BaseTranslator):
         self._backend = get_manager().get_backend()
 
     def set_query_type(
-        self, query_type, alist=None, nalist=None, elist=None, nelist=None, format=None, filename=None, rtype=None
+        self,
+        query_type,
+        alist=None,
+        nalist=None,
+        elist=None,
+        nelist=None,
+        download_format=None,
+        download=None,
+        filename=None,
+        rtype=None
     ):
         """
         sets one of the mutually exclusive values for self._result_type and
@@ -156,7 +166,8 @@ class NodeTranslator(BaseTranslator):
             self._content_type = 'derived_properties'
         elif query_type == 'download':
             self._content_type = 'download'
-            self._format = format
+            self._download_format = download_format
+            self._download = download
         elif query_type == 'comments':
             self._content_type = 'comments'
         elif query_type == 'repo_list':
@@ -195,7 +206,8 @@ class NodeTranslator(BaseTranslator):
         nalist=None,
         elist=None,
         nelist=None,
-        format=None,
+        download_format=None,
+        download=None,
         filename=None,
         rtype=None
     ):
@@ -232,7 +244,8 @@ class NodeTranslator(BaseTranslator):
             nalist=nalist,
             elist=elist,
             nelist=nelist,
-            format=format,
+            download_format=download_format,
+            download=download,
             filename=filename,
             rtype=rtype
         )
@@ -332,7 +345,7 @@ class NodeTranslator(BaseTranslator):
         elif self._content_type == 'download':
             # In this we do not return a dictionary but download the file in
             # specified format if available
-            data = {self._content_type: self.get_downloadable_data(node, self._format)}
+            data = {self._content_type: self.get_downloadable_data(node, self._download_format)}
 
         elif self._content_type == 'retrieved_inputs':
             # This type is only available for calc nodes. In case of job calc it
@@ -456,7 +469,7 @@ class NodeTranslator(BaseTranslator):
 
         return derived_properties
 
-    def get_downloadable_data(self, node, format=None):
+    def get_downloadable_data(self, node, download_format=None):
         """
         Generic function to download file in specified format.
         Actual definition is in child classes as the content to be
@@ -464,7 +477,7 @@ class NodeTranslator(BaseTranslator):
         to the resource
 
         :param node: node object
-        :param format: file extension format
+        :param download_format: file extension format
         :returns: data in selected format to download
 
         If this method is called by Node resource it will look for the type
@@ -479,7 +492,7 @@ class NodeTranslator(BaseTranslator):
             if subclass._aiida_type.split('.')[-1] == tclass.__name__:  # pylint: disable=protected-access
                 lowtrans = subclass
 
-        downloadable_data = lowtrans.get_downloadable_data(node, format=format)
+        downloadable_data = lowtrans.get_downloadable_data(node, download_format=download_format)
 
         return downloadable_data
 

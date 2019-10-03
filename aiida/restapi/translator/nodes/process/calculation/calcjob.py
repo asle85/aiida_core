@@ -8,7 +8,7 @@
 # For further information please visit http://www.aiida.net               #
 ###########################################################################
 """
-Translator for calculation node
+Translator for calcjob node
 """
 
 from __future__ import division
@@ -29,7 +29,7 @@ class CalcJobTranslator(ProcessTranslator):
     from aiida.orm import CalcJobNode
     _aiida_class = CalcJobNode
     # The string name of the AiiDA class
-    _aiida_type = 'process.calculation.calcjob.CalcJobNode.'
+    _aiida_type = 'process.calculation.calcjob.CalcJobNode'
 
     _result_type = __label__
 
@@ -79,3 +79,18 @@ class CalcJobTranslator(ProcessTranslator):
 
         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
         raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))
+
+    @staticmethod
+    def get_downloadable_data(node, download_format=None):
+        """
+        Generic function extended for calcjob processes. Currently
+        it is not implemented.
+
+        :param node: node object that has to be downloaded
+        :param download_format: file extension format
+        :returns: raise RestFeatureNotAvailable exception
+        """
+
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
+
+        raise RestFeatureNotAvailable('This endpoint is not available for CalcJobs.')

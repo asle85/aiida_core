@@ -53,7 +53,7 @@ class CifDataTranslator(DataTranslator):
 
     #pylint: disable=arguments-differ,redefined-builtin,protected-access
     @staticmethod
-    def get_downloadable_data(node, format=None):
+    def get_downloadable_data(node, download_format=None):
         """
         Return cif string for download
 

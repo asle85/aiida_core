@@ -56,9 +56,9 @@ class StructureDataTranslator(DataTranslator):
         return response
 
     @staticmethod
-    def get_downloadable_data(node, format='cif'):
+    def get_downloadable_data(node, download_format=None):
         """
-        Generic function extented for structure data
+        Generic function extended for structure data
 
         :param node: node object that has to be visualized
         :param download_format: file extension format
@@ -68,17 +68,19 @@ class StructureDataTranslator(DataTranslator):
         response = {}
 
         # This check is explicitly added here because sometimes
-        # None is passed here as an value for download_format.
-        if format is None:
-            format = 'cif'
+        # None is passed here as a value for download_format.
+        if download_format is None:
+            download_format = 'cif'
 
-        if format in node.get_export_formats():
+        if download_format in node.get_export_formats():
             try:
-                response['data'] = node._exportcontent(format)[0]  # pylint: disable=protected-access
+                response['data'] = node._exportcontent(download_format)[0]  # pylint: disable=protected-access
                 response['status'] = 200
-                response['filename'] = node.uuid + '_structure.' + format
+                response['filename'] = node.uuid + '_structure.' + download_format
             except LicensingException as exc:
                 response['status'] = 500
                 response['data'] = str(exc)
 
-        return response
+            return response
+
+        raise RestInputValidationError('The format {} is not supported.'.format(download_format))

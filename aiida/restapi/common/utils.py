@@ -505,7 +505,7 @@ class Utils(object):
         filename = None
         rtype = None
         download_format = None
-        download = False
+        download = True
 
         # io tree limit parameters
         tree_in_limit = None
@@ -550,7 +550,7 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify nelist more than once')
         if 'format' in field_counts.keys() and field_counts['format'] > 1:
             raise RestInputValidationError('You cannot specify format more than once')
-        if 'download' in field_counts.keys() and field_counts['format'] > 1:
+        if 'download' in field_counts.keys() and field_counts['download'] > 1:
             raise RestInputValidationError('You cannot specify download more than once')
         if 'filename' in field_counts.keys() and field_counts['filename'] > 1:
             raise RestInputValidationError('You cannot specify filename more than once')

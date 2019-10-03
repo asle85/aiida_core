@@ -169,7 +169,7 @@ class KpointsDataTranslator(DataTranslator):
     @staticmethod
     def get_downloadable_data(node, download_format=None):
         """
-        Generic function extented for kpoints data. Currently
+        Generic function extended for kpoints data. Currently
         it is not implemented.
 
         :param node: node object that has to be visualized
