@@ -350,9 +350,10 @@ class BaseTranslator(object):
         download_format=None,
         download=None,
         filename=None,
-        rtype=None
+        rtype=None,
+        attributes=None
     ):
-        # pylint: disable=too-many-arguments,unused-argument
+        # pylint: disable=too-many-arguments,unused-argument,too-many-locals,too-many-branches
         """
         Adds filters, default projections, order specs to the query_help,
         and initializes the qb object
@@ -371,6 +372,7 @@ class BaseTranslator(object):
         :param download: flag specifying if file has to be downloaded or visualized
         :param filename: name of the file to return its content
         :param rtype: return type of the file
+        :param attributes: list of attributes of the node to project on
         """
 
         tagged_filters = {}
@@ -397,8 +399,19 @@ class BaseTranslator(object):
         self.set_filters(tagged_filters)
 
         ## Add projections
-        if projections is None:
+        if projections is None and attributes is None:
             self.set_default_projections()
+        elif projections is None and attributes is not None:
+            default_projections = self.get_default_projections()
+            ## Check if attributes filter is a string or a list
+            if attributes in [True, 'true', 'True']:
+                default_projections.append('attributes')
+            elif isinstance(attributes, str):
+                default_projections.append('attributes.' + attributes)
+            elif isinstance(attributes, list):
+                for attr in attributes:
+                    default_projections.append('attributes.' + attr)
+            self.set_projections({self.__label__: default_projections})
         else:
             tagged_projections = {self._result_type: projections}
             self.set_projections(tagged_projections)

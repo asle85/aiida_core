@@ -843,6 +843,39 @@ class RESTApiTestSuite(RESTApiTestCase):
             self.assertEqual(response['data']['attributes'], {'attr1': 'OK'})
             RESTApiTestCase.compare_extra_response_data(self, 'nodes', url, response, uuid=node_uuid)
 
+    ############### calculation node attributes filter  #############
+    def test_calculation_attributes_filter(self):
+        """
+        Get the list of given calculation attributes filtered
+        """
+        attributes = {
+            'attr1': 'OK',
+            'attr2': 'OK',
+            'resources': {
+                'num_machines': 1,
+                'num_mpiprocs_per_machine': 1
+            },
+        }
+        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?attributes=true'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+            self.assertEqual(response['data']['nodes'][0]['attributes'], attributes)
+
+    ############### structure node attributes filter #############
+    def test_structure_attributes_filter(self):
+        """
+        Get the list of give calculation incoming
+        """
+        cell = [[2., 0., 0.], [0., 2., 0.], [0., 0., 2.]]
+        node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?attributes=cell'
+        with self.app.test_client() as client:
+            rv_obj = client.get(url)
+            response = json.loads(rv_obj.data)
+            self.assertEqual(response['data']['nodes'][0]['attributes.cell'], cell)
+
     ############### Structure visualization and download #############
     def test_structure_derived_properties(self):
         """

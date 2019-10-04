@@ -65,9 +65,7 @@ class NodeTranslator(BaseTranslator):
         # basic initialization
         super(NodeTranslator, self).__init__(Class=Class, **kwargs)
 
-        self._default_projections = [
-            'id', 'label', 'node_type', 'ctime', 'mtime', 'uuid', 'user_id', 'attributes', 'extras'
-        ]
+        self._default_projections = ['id', 'label', 'node_type', 'ctime', 'mtime', 'uuid', 'user_id']
         self._default_user_projections = ['email']
 
         ## node schema
@@ -139,7 +137,7 @@ class NodeTranslator(BaseTranslator):
         download_format=None,
         download=None,
         filename=None,
-        rtype=None
+        rtype=None,
     ):
         """
         sets one of the mutually exclusive values for self._result_type and
@@ -209,7 +207,8 @@ class NodeTranslator(BaseTranslator):
         download_format=None,
         download=None,
         filename=None,
-        rtype=None
+        rtype=None,
+        attributes=None
     ):
         """
         Adds filters, default projections, order specs to the query_help,
@@ -264,7 +263,9 @@ class NodeTranslator(BaseTranslator):
         if self._result_type is not self.__label__:
             projections = self._default_projections
 
-        super(NodeTranslator, self).set_query(filters=filters, orders=orders, projections=projections, node_id=node_id)
+        super(NodeTranslator, self).set_query(
+            filters=filters, orders=orders, projections=projections, node_id=node_id, attributes=attributes
+        )
 
     def _get_content(self):
         """
