@@ -208,7 +208,8 @@ class NodeTranslator(BaseTranslator):
         download=None,
         filename=None,
         rtype=None,
-        attributes=None
+        attributes=None,
+        extras=None
     ):
         """
         Adds filters, default projections, order specs to the query_help,
@@ -264,7 +265,12 @@ class NodeTranslator(BaseTranslator):
             projections = self._default_projections
 
         super(NodeTranslator, self).set_query(
-            filters=filters, orders=orders, projections=projections, node_id=node_id, attributes=attributes
+            filters=filters,
+            orders=orders,
+            projections=projections,
+            node_id=node_id,
+            attributes=attributes,
+            extras=extras
         )
 
     def _get_content(self):

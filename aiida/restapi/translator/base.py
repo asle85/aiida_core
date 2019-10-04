@@ -351,7 +351,8 @@ class BaseTranslator(object):
         download=None,
         filename=None,
         rtype=None,
-        attributes=None
+        attributes=None,
+        extras=None
     ):
         # pylint: disable=too-many-arguments,unused-argument,too-many-locals,too-many-branches
         """
@@ -373,6 +374,7 @@ class BaseTranslator(object):
         :param filename: name of the file to return its content
         :param rtype: return type of the file
         :param attributes: list of attributes of the node to project on
+        :param extras: list of extras of the node to project on
         """
 
         tagged_filters = {}
@@ -399,19 +401,30 @@ class BaseTranslator(object):
         self.set_filters(tagged_filters)
 
         ## Add projections
-        if projections is None and attributes is None:
-            self.set_default_projections()
-        elif projections is None and attributes is not None:
-            default_projections = self.get_default_projections()
-            ## Check if attributes filter is a string or a list
-            if attributes in [True, 'true', 'True']:
-                default_projections.append('attributes')
-            elif isinstance(attributes, str):
-                default_projections.append('attributes.' + attributes)
-            elif isinstance(attributes, list):
-                for attr in attributes:
-                    default_projections.append('attributes.' + attr)
-            self.set_projections({self.__label__: default_projections})
+        if projections is None:
+            if attributes is None and extras is None:
+                self.set_default_projections()
+            else:
+                default_projections = self.get_default_projections()
+                if attributes is not None:
+                    ## Check if attributes filter is a string or a list
+                    if attributes in [True, 'true', 'True']:
+                        default_projections.append('attributes')
+                    elif isinstance(attributes, str):
+                        default_projections.append('attributes.' + attributes)
+                    elif isinstance(attributes, list):
+                        for attr in attributes:
+                            default_projections.append('attributes.' + attr)
+                if extras is not None:
+                    ## Check if extras filter is a string or a list
+                    if extras in [True, 'true', 'True']:
+                        default_projections.append('extras')
+                    elif isinstance(extras, str):
+                        default_projections.append('extras.' + extras)
+                    elif isinstance(extras, list):
+                        for extra in extras:
+                            default_projections.append('extras.' + extra)
+                self.set_projections({self.__label__: default_projections})
         else:
             tagged_projections = {self._result_type: projections}
             self.set_projections(tagged_projections)
