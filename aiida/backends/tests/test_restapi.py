@@ -26,7 +26,7 @@ class RESTApiTestCase(AiidaTestCase):
     """
     Setup of the tests for the AiiDA RESTful-api
     """
-    _url_prefix = '/api/v3'
+    _url_prefix = '/api/v4'
     _dummy_data = {}
     _PERPAGE_DEFAULT = 20
     _LIMIT_DEFAULT = 400
@@ -79,6 +79,8 @@ class RESTApiTestCase(AiidaTestCase):
         calc.set_option('resources', resources)
         calc.set_attribute('attr1', 'OK')
         calc.set_attribute('attr2', 'OK')
+        calc.set_extra('extra1', False)
+        calc.set_extra('extra2', 'extra_info')
 
         calc.add_incoming(structure, link_type=LinkType.INPUT_CALC, link_label='link_structure')
         calc.add_incoming(parameter1, link_type=LinkType.INPUT_CALC, link_label='link_parameter')
@@ -862,6 +864,20 @@ class RESTApiTestSuite(RESTApiTestCase):
             response_value = client.get(url)
             response = json.loads(response_value.data)
             self.assertEqual(response['data']['nodes'][0]['attributes'], attributes)
+
+    ############### calculation node attributes filter  #############
+    def test_calculation_extras_filter(self):
+        """
+        Get the list of given calculation attributes filtered
+        """
+        extras = {'extra1': False, 'extra2': 'extra_info'}
+        node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?extras=extra1,extra2'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+            self.assertEqual(response['data']['nodes'][0]['extras.extra1'], extras['extra1'])
+            self.assertEqual(response['data']['nodes'][0]['extras.extra2'], extras['extra2'])
 
     ############### structure node attributes filter #############
     def test_structure_attributes_filter(self):
