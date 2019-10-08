@@ -209,7 +209,10 @@ class Utils(object):
         if not path:
             return (resource_type, page, node_id, query_type)
 
-        if path[0] in ['schema', 'statistics', 'types', 'download', 'report', 'status', 'input_files', 'output_files']:
+        if path[0] in [
+            'schema', 'statistics', 'types', 'download', 'download_formats', 'report', 'status', 'input_files',
+            'output_files'
+        ]:
             query_type = path.pop(0)
             if path:
                 raise RestInputValidationError('Given url do not accept further fields')

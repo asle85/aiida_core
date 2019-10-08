@@ -1031,3 +1031,18 @@ class RESTApiTestSuite(RESTApiTestCase):
             expected_log_keys = response['data']['logs'][0].keys()
             for key in ['time', 'loggername', 'levelname', 'dbnode_id', 'message']:
                 self.assertIn(key, expected_log_keys)
+
+    def test_download_formats(self):
+        """
+        test for download format endpoint
+        """
+        url = self.get_url_prefix() + '/nodes/download_formats'
+        with self.app.test_client() as client:
+            response_value = client.get(url)
+            response = json.loads(response_value.data)
+
+            for key in ['StructureData', 'CifData']:
+                self.assertIn(key, response['data'].keys())
+            for key in ['cif', 'xsf', 'xyz']:
+                self.assertIn(key, response['data']['StructureData'])
+            self.assertIn('cif', response['data']['CifData'])

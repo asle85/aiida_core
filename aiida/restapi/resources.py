@@ -273,6 +273,10 @@ class Node(Resource):
             headers = self.utils.build_headers(url=request.url, total_count=0)
             results = self.trans.get_io_tree(node_id, tree_in_limit, tree_out_limit)
 
+        elif node_id is None and query_type == 'download_formats':
+            headers = self.utils.build_headers(url=request.url, total_count=0)
+            results = self.trans.get_all_download_formats()
+
         # elif query_type == 'download':
         #     from aiida.orm import load_node
         #     node_obj = load_node(node_id)
