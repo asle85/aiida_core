@@ -410,7 +410,7 @@ class BaseTranslator(object):
                     ## Check if attributes filter is a string or a list
                     if attributes in [True, 'true', 'True']:
                         default_projections.append('attributes')
-                    elif isinstance(attributes, str):
+                    elif isinstance(attributes, six.string_types):
                         default_projections.append('attributes.' + attributes)
                     elif isinstance(attributes, list):
                         for attr in attributes:
