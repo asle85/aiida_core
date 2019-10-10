@@ -128,7 +128,7 @@ class BaseResource(Resource):
         # pylint: disable=unused-variable
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras
+            rtype, tree_in_limit, tree_out_limit, attributes, extras, type_idertifier
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -228,7 +228,7 @@ class Node(Resource):
 
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras
+            rtype, tree_in_limit, tree_out_limit, attributes, extras, type_idertifier
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -252,10 +252,6 @@ class Node(Resource):
 
         ## Treat the statistics
         elif query_type == 'statistics':
-            (
-                limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-                filename, rtype, tree_in_limit, tree_out_limit, attributes, extras
-            ) = self.utils.parse_query_string(query_string)
             headers = self.utils.build_headers(url=request.url, total_count=0)
             if filters:
                 usr = filters['user']['==']
@@ -275,7 +271,7 @@ class Node(Resource):
 
         elif node_id is None and query_type == 'download_formats':
             headers = self.utils.build_headers(url=request.url, total_count=0)
-            results = self.trans.get_all_download_formats()
+            results = self.trans.get_all_download_formats(type_idertifier)
 
         # elif query_type == 'download':
         #     from aiida.orm import load_node

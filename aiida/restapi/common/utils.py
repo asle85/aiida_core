@@ -511,6 +511,7 @@ class Utils(object):
         download = True
         attributes = None
         extras = None
+        type_idertifier = None
 
         # io tree limit parameters
         tree_in_limit = None
@@ -569,6 +570,8 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify attributes more than once')
         if 'extras' in field_counts.keys() and field_counts['extras'] > 1:
             raise RestInputValidationError('You cannot specify extras more than once')
+        if 'type_idertifier' in field_counts.keys() and field_counts['type_idertifier'] > 1:
+            raise RestInputValidationError('You cannot specify type_idertifier more than once')
 
         ## Extract results
         for field in field_list:
@@ -643,6 +646,12 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'rtype'")
 
+            elif field[0] == 'type_idertifier':
+                if field[1] == '=':
+                    rtype = field[2]
+                else:
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'type_idertifier'")
+
             elif field[0] == 'in_limit':
                 if field[1] == '=':
                     tree_in_limit = field[2]
@@ -695,7 +704,7 @@ class Utils(object):
 
         return (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras
+            rtype, tree_in_limit, tree_out_limit, attributes, extras, type_idertifier
         )
 
     def parse_query_string(self, query_string):

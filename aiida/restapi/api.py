@@ -156,7 +156,6 @@ class AiidaApi(Api):
             '/nodes/<id>/repo/list/',
             '/nodes/<id>/repo/contents/',
             '/nodes/<id>/download/',
-            '/nodes/<id>/download_formats/',
             endpoint='nodes',
             strict_slashes=False,
             resource_class_kwargs=kwargs

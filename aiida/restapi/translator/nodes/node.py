@@ -162,8 +162,6 @@ class NodeTranslator(BaseTranslator):
             self._nelist = nelist
         elif query_type == 'derived_properties':
             self._content_type = 'derived_properties'
-        elif query_type == 'download_formats':
-            self._content_type = 'download_formats'
         elif query_type == 'download':
             self._content_type = 'download'
             self._download_format = download_format
@@ -356,10 +354,6 @@ class NodeTranslator(BaseTranslator):
             # specified format if available
             data = {self._content_type: self.get_downloadable_data(node, self._download_format)}
 
-        elif self._content_type == 'download_formats':
-            # returns the possible download formats for given node
-            data = {self._content_type: self.get_download_formats(node)}
-
         elif self._content_type == 'retrieved_inputs':
             # This type is only available for calc nodes. In case of job calc it
             # returns calc incoming prepared to submit calc on the cluster else []
@@ -483,37 +477,26 @@ class NodeTranslator(BaseTranslator):
         return derived_properties
 
     @staticmethod
-    def get_download_formats(node):
-        """
-        returns the list of possible formats in which give node can be downloaded.
-        :param node: node object
-        """
-
-        try:
-            return node.get_export_formats()
-        except AttributeError:
-            from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-            raise RestFeatureNotAvailable('This endpoint is not available for node type {}'.format(node.node_type))
-
-    @staticmethod
-    def get_all_download_formats():
+    def get_all_download_formats(type_idertifier=None):
         """
         returns dict of possible node formats for all available node types
         """
-
-        def get_all_subclasses(class_name, all_subclasses):
-            """ returns all of all subclasses for given class """
-            for subclass in class_name.__subclasses__():
-                all_subclasses.append(subclass)
-                if subclass.__subclasses__():
-                    get_all_subclasses(subclass, all_subclasses)
-            return all_subclasses
-
-        from aiida.orm import Data
-        all_subclasses = get_all_subclasses(Data, [])
+        from aiida.plugins.entry_point import load_entry_point, get_entry_point_names
+        from aiida.common.exceptions import LoadingEntryPointError
 
         all_formats = {}
-        for cls in all_subclasses:
+
+        if type_idertifier:
+            pass
+
+        entry_point_group = 'aiida.data'
+        for name in get_entry_point_names(entry_point_group):
+            try:
+                cls = load_entry_point(entry_point_group, name)
+            except LoadingEntryPointError:
+                pass
+            else:
+                cls.get_export_formats()
             ntype = cls.class_node_type.split('.')[-2]
             try:
                 available_formats = cls.get_export_formats()
@@ -588,9 +571,10 @@ class NodeTranslator(BaseTranslator):
         :return: folder list / file metadata
         """
         from aiida.orm.utils.repository import File
+
         try:
             flist = node.list_objects(filename)
-        except NotADirectoryError:
+        except IOError:
             flist = node.get_object(filename)
             if isinstance(flist, File):
                 flist = [flist]
@@ -609,13 +593,12 @@ class NodeTranslator(BaseTranslator):
         :return: folder list / file metadata
         """
         from aiida.restapi.common.exceptions import RestInputValidationError
+
         if filename:
             try:
                 data = node.get_object_content(filename)
                 return data
-            except IsADirectoryError:
-                raise RestInputValidationError('It is a directory. Please pass filename.')
-            except FileNotFoundError:
+            except IOError:
                 raise RestInputValidationError('No such file is present')
         raise RestInputValidationError('filename is not provided')
 
