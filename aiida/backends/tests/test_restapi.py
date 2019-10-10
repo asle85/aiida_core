@@ -782,10 +782,14 @@ class RESTApiTestSuite(RESTApiTestCase):
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
-            self.assertEqual(len(response['data']['nodes']), 3)
-            self.assertEqual(len(response['data']['edges']), 2)
-            expected_attr = ['nodelabel', 'nodetype', 'linklabel', 'linktype', 'nodeuuid', 'description']
-            received_attr = response['data']['nodes'][1].keys()
+            self.assertEqual(len(response['data']['nodes']), 1)
+            self.assertEqual(len(response['data']['nodes'][0]['incoming']), 1)
+            self.assertEqual(len(response['data']['nodes'][0]['outgoing']), 1)
+            self.assertEqual(len(response['data']['metadata']), 1)
+            expected_attr = [
+                'ctime', 'mtime', 'id', 'node_label', 'node_type', 'uuid', 'description', 'incoming', 'outgoing'
+            ]
+            received_attr = response['data']['nodes'][0].keys()
             for attr in expected_attr:
                 self.assertIn(attr, received_attr)
             RESTApiTestCase.compare_extra_response_data(self, 'nodes', url, response, uuid=node_uuid)
@@ -865,14 +869,14 @@ class RESTApiTestSuite(RESTApiTestCase):
             response = json.loads(response_value.data)
             self.assertEqual(response['data']['nodes'][0]['attributes'], attributes)
 
-    ############### calculation node attributes filter  #############
+    ############### calculation node extras_filter  #############
     def test_calculation_extras_filter(self):
         """
-        Get the list of given calculation attributes filtered
+        Get the list of given calculation extras filtered
         """
         extras = {'extra1': False, 'extra2': 'extra_info'}
         node_uuid = self.get_dummy_data()['calculations'][1]['uuid']
-        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?extras=extra1,extra2'
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?extras=true&extras_filter=extra1,extra2'
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
@@ -882,11 +886,11 @@ class RESTApiTestSuite(RESTApiTestCase):
     ############### structure node attributes filter #############
     def test_structure_attributes_filter(self):
         """
-        Get the list of give calculation incoming
+        Get the list of given calculation attributes filtered
         """
         cell = [[2., 0., 0.], [0., 2., 0.], [0., 0., 2.]]
         node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
-        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?attributes=cell'
+        url = self.get_url_prefix() + '/nodes/' + str(node_uuid) + '?attributes=true&attributes_filter=cell'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)

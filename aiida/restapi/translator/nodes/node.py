@@ -211,7 +211,9 @@ class NodeTranslator(BaseTranslator):
         filename=None,
         rtype=None,
         attributes=None,
-        extras=None
+        attributes_filter=None,
+        extras=None,
+        extras_filter=None
     ):
         """
         Adds filters, default projections, order specs to the query_help,
@@ -230,6 +232,10 @@ class NodeTranslator(BaseTranslator):
         :param format: file format to download e.g. cif, xyz
         :param filename: name of the file to return its content
         :param rtype: return type of the file
+        :param attributes: flag to show attributes for nodes
+        :param attributes_filter: list of attributes to query
+        :param extras: flag to show extras for nodes
+        :param extras_filter: list of extras to query
         """
 
         ## Check the compatibility of query_type and id
@@ -272,7 +278,9 @@ class NodeTranslator(BaseTranslator):
             projections=projections,
             node_id=node_id,
             attributes=attributes,
-            extras=extras
+            attributes_filter=attributes_filter,
+            extras=extras,
+            extras_filter=extras_filter
         )
 
     def _get_content(self):
@@ -711,24 +719,6 @@ class NodeTranslator(BaseTranslator):
         from aiida.orm.querybuilder import QueryBuilder
         from aiida.orm import Node
 
-        def get_node_shape(ntype):
-            """
-            Get tree node shape depending on node type
-            :param ntype: node type
-            :return: shape of the node displayed in tree
-            """
-
-            node_type = ntype.split('.')[0]
-            if node_type == 'process':
-                shape = 'square'
-            elif ntype.split('.')[1] == 'code':
-                shape = 'triangle'
-            else:
-                # default and data node shape
-                shape = 'dot'
-
-            return shape
-
         def get_node_description(node):
             """
             Get the description of the node.
@@ -750,8 +740,6 @@ class NodeTranslator(BaseTranslator):
         qb_obj.append(Node, tag='main', project=['*'], filters=self._id_filter)
 
         nodes = []
-        edges = []
-        node_count = 0
 
         if qb_obj.count() > 0:
             main_node = qb_obj.first()[0]
@@ -759,30 +747,34 @@ class NodeTranslator(BaseTranslator):
             uuid = main_node.uuid
             nodetype = main_node.node_type
             nodelabel = main_node.label
-            display_type = nodetype.split('.')[-2]
             description = get_node_description(main_node)
+            ctime = main_node.ctime
+            mtime = main_node.mtime
 
             nodes.append({
-                'id': node_count,
-                'nodeid': pk,
-                'nodeuuid': uuid,
-                'nodetype': nodetype,
-                'nodelabel': nodelabel,
-                'displaytype': display_type,
-                'group': 'main_node',
+                'ctime': ctime,
+                'mtime': mtime,
+                'id': pk,
+                'uuid': uuid,
+                'node_type': nodetype,
+                'node_label': nodelabel,
                 'description': description,
-                'shape': get_node_shape(nodetype)
+                'incoming': [],
+                'outgoing': []
             })
-        node_count += 1
 
         # get all incoming
         qb_obj = QueryBuilder()
         qb_obj.append(Node, tag='main', project=['*'], filters=self._id_filter)
-        qb_obj.append(Node, tag='in', project=['*'], edge_project=['label', 'type'], with_outgoing='main')
+        qb_obj.append(Node, tag='in', project=['*'], edge_project=['label', 'type'],
+                      with_outgoing='main').order_by({'in': [{
+                          'id': {
+                              'order': 'asc'
+                          }
+                      }]})
         if tree_in_limit is not None:
             qb_obj.limit(tree_in_limit)
 
-        input_node_pks = {}
         sent_no_of_incomings = qb_obj.count()
 
         if sent_no_of_incomings > 0:
@@ -791,50 +783,37 @@ class NodeTranslator(BaseTranslator):
                 pk = node.pk
                 linklabel = node_input['main--in']['label']
                 linktype = node_input['main--in']['type']
+                uuid = node.uuid
+                nodetype = node.node_type
+                nodelabel = node.label
+                description = get_node_description(node)
+                node_ctime = node.ctime
+                node_mtime = node.mtime
 
-                # add node if it is not present
-                if pk not in input_node_pks.keys():
-                    input_node_pks[pk] = node_count
-                    uuid = node.uuid
-                    nodetype = node.node_type
-                    nodelabel = node.label
-                    display_type = nodetype.split('.')[-2]
-                    description = get_node_description(node)
-
-                    nodes.append({
-                        'id': node_count,
-                        'nodeid': pk,
-                        'nodeuuid': uuid,
-                        'nodetype': nodetype,
-                        'nodelabel': nodelabel,
-                        'displaytype': display_type,
-                        'group': 'inputs',
-                        'description': description,
-                        'linklabel': linklabel,
-                        'linktype': linktype,
-                        'shape': get_node_shape(nodetype)
-                    })
-                    node_count += 1
-
-                from_edge = input_node_pks[pk]
-                edges.append({
-                    'from': from_edge,
-                    'to': 0,
-                    'arrows': 'to',
-                    'color': {
-                        'inherit': 'from'
-                    },
-                    'linktype': linktype,
+                nodes[0]['incoming'].append({
+                    'ctime': node_ctime,
+                    'mtime': node_mtime,
+                    'id': pk,
+                    'uuid': uuid,
+                    'node_type': nodetype,
+                    'node_label': nodelabel,
+                    'description': description,
+                    'link_label': linklabel,
+                    'link_type': linktype
                 })
 
         # get all outgoing
         qb_obj = QueryBuilder()
         qb_obj.append(Node, tag='main', project=['*'], filters=self._id_filter)
-        qb_obj.append(Node, tag='out', project=['*'], edge_project=['label', 'type'], with_incoming='main')
+        qb_obj.append(Node, tag='out', project=['*'], edge_project=['label', 'type'],
+                      with_incoming='main').order_by({'out': [{
+                          'id': {
+                              'order': 'asc'
+                          }
+                      }]})
         if tree_out_limit is not None:
             qb_obj.limit(tree_out_limit)
 
-        output_node_pks = {}
         sent_no_of_outgoings = qb_obj.count()
 
         if sent_no_of_outgoings > 0:
@@ -843,40 +822,23 @@ class NodeTranslator(BaseTranslator):
                 pk = node.pk
                 linklabel = output['main--out']['label']
                 linktype = output['main--out']['type']
+                uuid = node.uuid
+                nodetype = node.node_type
+                nodelabel = node.label
+                description = get_node_description(node)
+                node_ctime = node.ctime
+                node_mtime = node.mtime
 
-                # add node if it is not present
-                if pk not in output_node_pks.keys():
-                    output_node_pks[pk] = node_count
-                    uuid = node.uuid
-                    nodetype = node.node_type
-                    nodelabel = node.label
-                    display_type = nodetype.split('.')[-2]
-                    description = get_node_description(node)
-
-                    nodes.append({
-                        'id': node_count,
-                        'nodeid': pk,
-                        'nodeuuid': uuid,
-                        'nodetype': nodetype,
-                        'nodelabel': nodelabel,
-                        'displaytype': display_type,
-                        'group': 'outputs',
-                        'description': description,
-                        'linklabel': linklabel,
-                        'linktype': linktype,
-                        'shape': get_node_shape(nodetype)
-                    })
-                    node_count += 1
-
-                to_edge = output_node_pks[pk]
-                edges.append({
-                    'from': 0,
-                    'to': to_edge,
-                    'arrows': 'to',
-                    'color': {
-                        'inherit': 'to'
-                    },
-                    'linktype': linktype
+                nodes[0]['outgoing'].append({
+                    'ctime': node_ctime,
+                    'mtime': node_mtime,
+                    'id': pk,
+                    'uuid': uuid,
+                    'node_type': nodetype,
+                    'node_label': nodelabel,
+                    'description': description,
+                    'link_label': linklabel,
+                    'link_type': linktype
                 })
 
         # count total no of nodes
@@ -890,11 +852,11 @@ class NodeTranslator(BaseTranslator):
         builder.append(Node, tag='out', project=['id'], with_incoming='main')
         total_no_of_outgoings = builder.count()
 
-        return {
-            'nodes': nodes,
-            'edges': edges,
+        metadata = [{
             'total_no_of_incomings': total_no_of_incomings,
             'total_no_of_outgoings': total_no_of_outgoings,
             'sent_no_of_incomings': sent_no_of_incomings,
             'sent_no_of_outgoings': sent_no_of_outgoings
-        }
+        }]
+
+        return {'nodes': nodes, 'metadata': metadata}

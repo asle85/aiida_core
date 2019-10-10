@@ -128,7 +128,7 @@ class BaseResource(Resource):
         # pylint: disable=unused-variable
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -228,7 +228,7 @@ class Node(Resource):
 
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -254,7 +254,7 @@ class Node(Resource):
         elif query_type == 'statistics':
             (
                 limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download,
-                filename, rtype, tree_in_limit, tree_out_limit, attributes, extras
+                filename, rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter
             ) = self.utils.parse_query_string(query_string)
             headers = self.utils.build_headers(url=request.url, total_count=0)
             if filters:
@@ -335,7 +335,9 @@ class Node(Resource):
                 filename=filename,
                 rtype=rtype,
                 attributes=attributes,
-                extras=extras
+                attributes_filter=attributes_filter,
+                extras=extras,
+                extras_filter=extras_filter
             )
 
             ## Count results
