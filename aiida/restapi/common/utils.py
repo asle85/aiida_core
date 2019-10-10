@@ -510,8 +510,10 @@ class Utils(object):
         download_format = None
         download = True
         attributes = None
+        attributes_filter = None
         extras = None
-        type_idertifier = None
+        extras_filter = None
+        type_identifier = None
 
         # io tree limit parameters
         tree_in_limit = None
@@ -568,10 +570,14 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify out_limit more than once')
         if 'attributes' in field_counts.keys() and field_counts['attributes'] > 1:
             raise RestInputValidationError('You cannot specify attributes more than once')
+        if 'attributes_filter' in field_counts.keys() and field_counts['attributes_filter'] > 1:
+            raise RestInputValidationError('You cannot specify attributes_filter more than once')
         if 'extras' in field_counts.keys() and field_counts['extras'] > 1:
             raise RestInputValidationError('You cannot specify extras more than once')
-        if 'type_idertifier' in field_counts.keys() and field_counts['type_idertifier'] > 1:
-            raise RestInputValidationError('You cannot specify type_idertifier more than once')
+        if 'extras_filter' in field_counts.keys() and field_counts['extras_filter'] > 1:
+            raise RestInputValidationError('You cannot specify extras_filter more than once')
+        if 'type_identifier' in field_counts.keys() and field_counts['type_identifier'] > 1:
+            raise RestInputValidationError('You cannot specify type_identifier more than once')
 
         ## Extract results
         for field in field_list:
@@ -646,11 +652,11 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'rtype'")
 
-            elif field[0] == 'type_idertifier':
+            elif field[0] == 'type_identifier':
                 if field[1] == '=':
                     rtype = field[2]
                 else:
-                    raise RestInputValidationError("only assignment operator '=' is permitted after 'type_idertifier'")
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'type_identifier'")
 
             elif field[0] == 'in_limit':
                 if field[1] == '=':
@@ -670,11 +676,24 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'attributes'")
 
+            elif field[0] == 'attributes_filter':
+                if field[1] == '=':
+                    attributes_filter = field[2]
+                else:
+                    raise RestInputValidationError(
+                        "only assignment operator '=' is permitted after 'attributes_filter'"
+                    )
             elif field[0] == 'extras':
                 if field[1] == '=':
                     extras = field[2]
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'extras'")
+
+            elif field[0] == 'extras_filter':
+                if field[1] == '=':
+                    extras_filter = field[2]
+                else:
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'extras_filter'")
 
             else:
 
@@ -704,7 +723,7 @@ class Utils(object):
 
         return (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, extras, type_idertifier
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, type_identifier
         )
 
     def parse_query_string(self, query_string):
