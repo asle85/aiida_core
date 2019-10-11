@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """Utility functions to work with node "full types" which are unique node identifiers."""
 from __future__ import absolute_import
+
+import collections
 import six
 
 FULL_TYPE_CONCATENATOR = '|'
@@ -84,6 +86,7 @@ def load_entry_point_from_full_type(full_type):
     :raises EntryPointError:
     """
     from aiida.common import EntryPointError
+    from aiida.common.utils import strip_prefix
     from aiida.plugins.entry_point import is_valid_entry_point_string, load_entry_point, load_entry_point_from_string
 
     prefix = 'data.'
@@ -101,7 +104,7 @@ def load_entry_point_from_full_type(full_type):
 
     elif node_type.startswith(prefix):
 
-        base_name = node_type.lstrip(prefix)
+        base_name = strip_prefix(node_type, prefix)
         entry_point_name = base_name.rsplit('.', 2)[0]
 
         try:
@@ -115,55 +118,156 @@ def load_entry_point_from_full_type(full_type):
     raise EntryPointError('entry point of the given full type cannot be loaded')
 
 
-def get_existing_full_types():
-    """Return a dictionary of the set of node type identifiers present in the database.
+class Namespace(collections.MutableMapping):
 
-    A type identifier is the `Node.node_type` and `Node.process_type` concatenated by a special character. Each type
-    identifier returned in the result will be mapped onto a dictionary of metadata, with for example a short human
-    readable label.
+    NAMESPACE_SEPARATOR = '.'
 
-    :return: mapping of unique node type identifier onto its metadata
+    def __str__(self):
+        import json
+        return json.dumps(self.get_description(), sort_keys=True, indent=4)
+
+    def __init__(self, namespace, path=None, label=None, full_type=None):
+        self._namespace = namespace
+        self._label = label
+        self._path = path if path else namespace
+        self._full_type = self._infer_full_type(full_type)
+        self._subspaces = {}
+
+    def _infer_full_type(self, full_type):
+        from aiida.common.utils import strip_prefix
+        if full_type or self._path is None:
+            return full_type
+
+        full_type = strip_prefix(self._path, 'node.')
+
+        return full_type + '.{query_character}{concatenator}{query_character}'.format(
+            query_character=LIKE_OPERATOR_CHARACTER, concatenator=FULL_TYPE_CONCATENATOR
+        )
+
+    def __iter__(self):
+        return self._subspaces.__iter__()
+
+    def __len__(self):
+        return len(self._subspaces)
+
+    def __delitem__(self, key):
+        del self._subspaces[key]
+
+    def __getitem__(self, key):
+        return self._subspaces[key]
+
+    def __setitem__(self, key, port):
+        self._subspaces[key] = port
+
+    def get_description(self):
+        """Return a dictionary with a description of the ports this namespace contains.
+
+        Nested PortNamespaces will be properly recursed and Ports will print their properties in a list
+
+        :returns: a dictionary of descriptions of the Ports contained within this PortNamespace
+        """
+        result = {
+            'namespace': self._namespace,
+            'full_type': self._full_type,
+            'label': self._label,
+            'path': self._path,
+            'subspaces': []
+        }
+        for name, port in self._subspaces.items():
+            result['subspaces'].append(port.get_description())
+
+        return result
+
+    def create_namespace(self, name, **kwargs):
+        """Create and return a new `Namespace` in this `Namespace`.
+
+        If the name is namespaced, the sub `Namespaces` will be created recursively, except if one of the namespaces is
+        already occupied at any level by a Port in which case a ValueError will be thrown
+
+        :param name: name (potentially namespaced) of the port to create and return
+        :param kwargs: constructor arguments that will be used *only* for the construction of the terminal Namespace
+        :returns: Namespace
+        :raises: ValueError if any sub namespace is occupied by a non-Namespace port
+        """
+        if not isinstance(name, six.string_types):
+            raise ValueError('name has to be a string type, not {}'.format(type(name)))
+
+        if not name:
+            raise ValueError('name cannot be an empty string')
+
+        namespace = name.split(self.NAMESPACE_SEPARATOR)
+        port_name = namespace.pop(0)
+
+        if port_name in self and not isinstance(self[port_name], Namespace):
+            raise ValueError("the name '{}' in '{}' already contains a namespace".format(port_name, self.name))
+
+        path = '{}{}{}'.format(self._path, self.NAMESPACE_SEPARATOR, port_name)
+
+        # If this is True, the (sub) port namespace does not yet exist, so we create it
+        if port_name not in self:
+
+            # If there still is a `namespace`, we create a sub namespace, *without* the constructor arguments
+            if namespace:
+                self[port_name] = self.__class__(port_name, path=path)
+
+            # Otherwise it is the terminal port and we construct *with* the keyword arugments
+            else:
+                self[port_name] = self.__class__(port_name, path=path, **kwargs)
+
+        if namespace:
+            return self[port_name].create_namespace(self.NAMESPACE_SEPARATOR.join(namespace), **kwargs)
+        else:
+            return self[port_name]
+
+
+def get_node_namespace():
+    """Return the full namespace of all available nodes in the current database.
+
+    :return: complete node `Namespace`
     """
     from aiida import orm
     from aiida.common import EntryPointError
-    from aiida.plugins.entry_point import is_valid_entry_point_string, load_entry_point_from_string
-
-    result = [{'namespace': 'data', 'subspaces': []}, {'namespace': 'process', 'subspaces': []}]
+    from aiida.plugins.entry_point import is_valid_entry_point_string, load_entry_point_from_string, parse_entry_point_string
 
     builder = orm.QueryBuilder().append(orm.Node, project=['node_type', 'process_type'])
-    unique = {(node_type, process_type if process_type else '') for node_type, process_type in builder.all()}
+    unique_types = {(node_type, process_type if process_type else '') for node_type, process_type in builder.all()}
 
-    for node_type, process_type in unique:
+    # First we create a flat list of all "leaf" node types.
+    namespaces = []
+
+    for node_type, process_type in unique_types:
+
+        label = None
+        namespace = None
+
+        if process_type:
+            # Process nodes
+            if is_valid_entry_point_string(process_type):
+                try:
+                    cls = load_entry_point_from_string(process_type)
+                    label = cls.__name__
+                except EntryPointError:
+                    group, label = parse_entry_point_string(process_type)
+            else:
+                label = process_type.rsplit('.', 1)[-1]
+
+            parts = node_type.rsplit('.', 2)
+            namespace = '.'.join(parts[:-2] + [label])
+        else:
+            # Data nodes
+            parts = node_type.rsplit('.', 2)
+            try:
+                label = parts[-2]
+                namespace = '.'.join(parts[:-2])
+            except IndexError:
+                continue
 
         full_type = construct_full_type(node_type, process_type)
-        label = None
+        namespaces.append((namespace, label, full_type))
 
-        if not node_type and not process_type:
-            continue
+    node_namespace = Namespace('node')
 
-        if not process_type:
-            label = node_type.rsplit('.', 2)[-2]
+    for namespace, label, full_type in namespaces:
+        node_namespace.create_namespace(namespace, label=label, full_type=full_type)
 
-        elif process_type and is_valid_entry_point_string(process_type):
-            try:
-                plugin = load_entry_point_from_string(process_type)
-                label = plugin.__name__
-            except EntryPointError:
-                label = process_type
-        else:
-            label = process_type.rsplit('.', 1)[-1]
-
-        if node_type.startswith('data.'):
-            result[0]['subspaces'].append({
-                'full_type': full_type,
-                'label': label,
-            })
-        elif node_type.startswith('process.'):
-            result[1]['subspaces'].append({
-                'full_type': full_type,
-                'label': label,
-            })
-        else:
-            raise RuntimeError('corrupt node type')
-
-    return result
+    return node_namespace
