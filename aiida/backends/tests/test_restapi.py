@@ -1045,8 +1045,8 @@ class RESTApiTestSuite(RESTApiTestCase):
             response_value = client.get(url)
             response = json.loads(response_value.data)
 
-            for key in ['StructureData', 'CifData']:
+            for key in ['data.structure.StructureData.|', 'data.cif.CifData.|']:
                 self.assertIn(key, response['data'].keys())
             for key in ['cif', 'xsf', 'xyz']:
-                self.assertIn(key, response['data']['StructureData'])
-            self.assertIn('cif', response['data']['CifData'])
+                self.assertIn(key, response['data']['data.structure.StructureData.|'])
+            self.assertIn('cif', response['data']['data.cif.CifData.|'])

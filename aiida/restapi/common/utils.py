@@ -494,7 +494,6 @@ class Utils(object):
         :param field_list: a (nested) list of elements resulting from parsing the query_string
         :returns: the filters in the
         """
-
         ## Create void variables
         filters = {}
         orderby = []
@@ -513,7 +512,7 @@ class Utils(object):
         attributes_filter = None
         extras = None
         extras_filter = None
-        type_identifier = None
+        full_type = None
 
         # io tree limit parameters
         tree_in_limit = None
@@ -576,8 +575,8 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify extras more than once')
         if 'extras_filter' in field_counts.keys() and field_counts['extras_filter'] > 1:
             raise RestInputValidationError('You cannot specify extras_filter more than once')
-        if 'type_identifier' in field_counts.keys() and field_counts['type_identifier'] > 1:
-            raise RestInputValidationError('You cannot specify type_identifier more than once')
+        if 'full_type' in field_counts.keys() and field_counts['full_type'] > 1:
+            raise RestInputValidationError('You cannot specify full_type more than once')
 
         ## Extract results
         for field in field_list:
@@ -652,11 +651,11 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'rtype'")
 
-            elif field[0] == 'type_identifier':
+            elif field[0] == 'full_type':
                 if field[1] == '=':
-                    rtype = field[2]
+                    full_type = field[2]
                 else:
-                    raise RestInputValidationError("only assignment operator '=' is permitted after 'type_identifier'")
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'full_type'")
 
             elif field[0] == 'in_limit':
                 if field[1] == '=':
@@ -723,7 +722,7 @@ class Utils(object):
 
         return (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, type_identifier
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         )
 
     def parse_query_string(self, query_string):

@@ -128,7 +128,7 @@ class BaseResource(Resource):
         # pylint: disable=unused-variable
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, type_identifier
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -228,7 +228,7 @@ class Node(Resource):
 
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, type_identifier
+            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -271,7 +271,7 @@ class Node(Resource):
 
         elif node_id is None and query_type == 'download_formats':
             headers = self.utils.build_headers(url=request.url, total_count=0)
-            results = self.trans.get_all_download_formats(type_identifier)
+            results = self.trans.get_all_download_formats(full_type)
 
         # elif query_type == 'download':
         #     from aiida.orm import load_node

@@ -485,33 +485,41 @@ class NodeTranslator(BaseTranslator):
         return derived_properties
 
     @staticmethod
-    def get_all_download_formats(type_idertifier=None):
+    def get_all_download_formats(full_type=None):
         """
         returns dict of possible node formats for all available node types
         """
         from aiida.plugins.entry_point import load_entry_point, get_entry_point_names
+        from aiida.restapi.common.identifiers import load_entry_point_from_full_type, construct_full_type
         from aiida.common.exceptions import LoadingEntryPointError
 
         all_formats = {}
 
-        if type_idertifier:
-            pass
+        if full_type:
 
-        entry_point_group = 'aiida.data'
-        for name in get_entry_point_names(entry_point_group):
+            node_cls = load_entry_point_from_full_type(full_type)
             try:
-                cls = load_entry_point(entry_point_group, name)
-            except LoadingEntryPointError:
-                pass
-            else:
-                cls.get_export_formats()
-            ntype = cls.class_node_type.split('.')[-2]
-            try:
-                available_formats = cls.get_export_formats()
-                if available_formats:
-                    all_formats[ntype] = available_formats
+                available_formats = node_cls.get_export_formats()
+                all_formats[full_type] = available_formats
             except AttributeError:
                 pass
+        else:
+            entry_point_group = 'aiida.data'
+
+            for name in get_entry_point_names(entry_point_group):
+                try:
+                    node_cls = load_entry_point(entry_point_group, name)
+                except LoadingEntryPointError:
+                    pass
+                else:
+                    node_cls.get_export_formats()
+                try:
+                    available_formats = node_cls.get_export_formats()
+                    if available_formats:
+                        full_type = construct_full_type(node_cls.class_node_type, '')
+                        all_formats[full_type] = available_formats
+                except AttributeError:
+                    pass
         return all_formats
 
     def get_downloadable_data(self, node, download_format=None):
