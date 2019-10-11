@@ -84,7 +84,9 @@ class Manager(object):
         profile = self.get_profile()
 
         if profile is None:
-            raise ConfigurationError('could not determine the current profile')
+            raise ConfigurationError(
+                'Could not determine the current profile. Consider loading a profile using `aiida.load_profile()`.'
+            )
 
         if configuration.BACKEND_UUID is not None and configuration.BACKEND_UUID != profile.uuid:
             raise InvalidOperation('cannot load backend because backend of another profile is already loaded')
@@ -118,6 +120,14 @@ class Manager(object):
         configure_logging(with_orm=True)
 
         return self._backend
+
+    @property
+    def backend_loaded(self):
+        """Return whether a database backend has been loaded.
+
+        :return: boolean, True if database backend is currently loaded, False otherwise
+        """
+        return self._backend is not None
 
     def get_backend(self):
         """
