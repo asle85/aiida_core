@@ -11,8 +11,8 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+
 from aiida.restapi.translator.nodes.data import DataTranslator
-from aiida.common.exceptions import LicensingException
 
 
 class CifDataTranslator(DataTranslator):
@@ -50,26 +50,3 @@ class CifDataTranslator(DataTranslator):
         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
         raise RestFeatureNotAvailable('This endpoint is not available for CifData.')
-
-    #pylint: disable=arguments-differ,redefined-builtin,protected-access
-    @staticmethod
-    def get_downloadable_data(node, download_format=None):
-        """
-        Return cif string for download
-
-        :param node: node representing cif file to be downloaded
-        :returns: cif file
-        """
-
-        response = {}
-
-        download_format = 'cif'
-        try:
-            response['data'] = node._exportcontent(download_format)[0]  # pylint: disable=protected-access
-            response['status'] = 200
-            response['filename'] = node.uuid + '.' + download_format
-        except LicensingException as exc:
-            response['status'] = 500
-            response['data'] = str(exc)
-
-        return response

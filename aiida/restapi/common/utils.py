@@ -555,10 +555,10 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify elist more than once')
         if 'nelist' in field_counts.keys() and field_counts['nelist'] > 1:
             raise RestInputValidationError('You cannot specify nelist more than once')
-        if 'format' in field_counts.keys() and field_counts['format'] > 1:
-            raise RestInputValidationError('You cannot specify format more than once')
         if 'download' in field_counts.keys() and field_counts['download'] > 1:
             raise RestInputValidationError('You cannot specify download more than once')
+        if 'download_format' in field_counts.keys() and field_counts['download_format'] > 1:
+            raise RestInputValidationError('You cannot specify download_format more than once')
         if 'filename' in field_counts.keys() and field_counts['filename'] > 1:
             raise RestInputValidationError('You cannot specify filename more than once')
         if 'rtype' in field_counts.keys() and field_counts['rtype'] > 1:
@@ -628,16 +628,17 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'orderby'")
 
-            elif field[0] == 'format':
-                if field[1] == '=':
-                    download_format = field[2]
-                else:
-                    raise RestInputValidationError("only assignment operator '=' is permitted after 'format'")
             elif field[0] == 'download':
                 if field[1] == '=':
                     download = field[2]
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'download'")
+
+            elif field[0] == 'download_format':
+                if field[1] == '=':
+                    download_format = field[2]
+                else:
+                    raise RestInputValidationError("only assignment operator '=' is permitted after 'download_format'")
 
             elif field[0] == 'filename':
                 if field[1] == '=':

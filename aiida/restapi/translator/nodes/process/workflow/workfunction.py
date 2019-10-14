@@ -54,18 +54,3 @@ class WorkFunctionTranslator(ProcessTranslator):
         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
         raise RestFeatureNotAvailable('This endpoint is not available for WorkFunctions.')
-
-    @staticmethod
-    def get_downloadable_data(node, download_format=None):
-        """
-        Generic function extended for workfunction processes. Currently
-        it is not implemented.
-
-        :param node: node object that has to be downloaded
-        :param download_format: file extension format
-        :returns: raise RestFeatureNotAvailable exception
-        """
-
-        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-
-        raise RestFeatureNotAvailable('This endpoint is not available for WorkFunctions.')
