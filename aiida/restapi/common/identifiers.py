@@ -72,7 +72,8 @@ def get_full_type_filters(full_type):
     if LIKE_OPERATOR_CHARACTER in process_type:
         filters['process_type'] = {'like': process_type}
     else:
-        filters['process_type'] = process_type
+        if process_type:
+            filters['process_type'] = process_type
 
     return filters
 
@@ -119,6 +120,7 @@ def load_entry_point_from_full_type(full_type):
 
 
 class Namespace(collections.MutableMapping):
+    """ Namespace is a node group in return node hierarchy  """
 
     NAMESPACE_SEPARATOR = '.'
 
@@ -134,6 +136,7 @@ class Namespace(collections.MutableMapping):
         self._subspaces = {}
 
     def _infer_full_type(self, full_type):
+        """ update full type """
         from aiida.common.utils import strip_prefix
         if full_type or self._path is None:
             return full_type
@@ -173,7 +176,7 @@ class Namespace(collections.MutableMapping):
             'path': self._path,
             'subspaces': []
         }
-        for name, port in self._subspaces.items():
+        for _, port in self._subspaces.items():
             result['subspaces'].append(port.get_description())
 
         return result
@@ -199,7 +202,7 @@ class Namespace(collections.MutableMapping):
         port_name = namespace.pop(0)
 
         if port_name in self and not isinstance(self[port_name], Namespace):
-            raise ValueError("the name '{}' in '{}' already contains a namespace".format(port_name, self.name))
+            raise ValueError("the name '{}' in '{}' already contains a namespace".format(port_name, name))
 
         path = '{}{}{}'.format(self._path, self.NAMESPACE_SEPARATOR, port_name)
 
@@ -216,8 +219,8 @@ class Namespace(collections.MutableMapping):
 
         if namespace:
             return self[port_name].create_namespace(self.NAMESPACE_SEPARATOR.join(namespace), **kwargs)
-        else:
-            return self[port_name]
+
+        return self[port_name]
 
 
 def get_node_namespace():
@@ -227,7 +230,9 @@ def get_node_namespace():
     """
     from aiida import orm
     from aiida.common import EntryPointError
-    from aiida.plugins.entry_point import is_valid_entry_point_string, load_entry_point_from_string, parse_entry_point_string
+    from aiida.plugins.entry_point import (
+        is_valid_entry_point_string, load_entry_point_from_string, parse_entry_point_string
+    )
 
     builder = orm.QueryBuilder().append(orm.Node, project=['node_type', 'process_type'])
     unique_types = {(node_type, process_type if process_type else '') for node_type, process_type in builder.all()}
@@ -247,7 +252,7 @@ def get_node_namespace():
                     cls = load_entry_point_from_string(process_type)
                     label = cls.__name__
                 except EntryPointError:
-                    group, label = parse_entry_point_string(process_type)
+                    _, label = parse_entry_point_string(process_type)
             else:
                 label = process_type.rsplit('.', 1)[-1]
 

@@ -333,7 +333,8 @@ class Node(Resource):
                 attributes=attributes,
                 attributes_filter=attributes_filter,
                 extras=extras,
-                extras_filter=extras_filter
+                extras_filter=extras_filter,
+                full_type=full_type
             )
 
             ## Count results
