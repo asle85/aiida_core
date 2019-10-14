@@ -333,6 +333,8 @@ class BaseTranslator(object):
             return order_dict
 
         ## Assign orderby field query_help
+        if 'id' not in orders[self._result_type] and '-id' not in orders[self._result_type]:
+            orders[self._result_type].append('id')
         for tag, columns in orders.items():
             self._query_help['order_by'][tag] = def_order(columns)
 
@@ -347,10 +349,6 @@ class BaseTranslator(object):
         nalist=None,
         elist=None,
         nelist=None,
-        download_format=None,
-        download=None,
-        filename=None,
-        rtype=None,
         attributes=None,
         attributes_filter=None,
         extras=None,

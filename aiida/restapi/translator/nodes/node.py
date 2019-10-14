@@ -65,7 +65,7 @@ class NodeTranslator(BaseTranslator):
         # basic initialization
         super(NodeTranslator, self).__init__(Class=Class, **kwargs)
 
-        self._default_projections = ['id', 'label', 'node_type', 'ctime', 'mtime', 'uuid', 'user_id']
+        self._default_projections = ['id', 'label', 'node_type', 'process_type', 'ctime', 'mtime', 'uuid', 'user_id']
         self._default_user_projections = ['email']
 
         ## node schema
@@ -211,7 +211,8 @@ class NodeTranslator(BaseTranslator):
         attributes=None,
         attributes_filter=None,
         extras=None,
-        extras_filter=None
+        extras_filter=None,
+        full_type=None
     ):
         """
         Adds filters, default projections, order specs to the query_help,
@@ -235,6 +236,7 @@ class NodeTranslator(BaseTranslator):
         :param extras: flag to show extras for nodes
         :param extras_filter: list of extras to query
         """
+        # pylint: disable=arguments-differ, too-many-locals
 
         ## Check the compatibility of query_type and id
         if query_type != 'default' and id is None:
@@ -269,6 +271,13 @@ class NodeTranslator(BaseTranslator):
         # Make it clearer
         if self._result_type is not self.__label__:
             projections = self._default_projections
+
+        if full_type:
+            # If full_type is not none, convert it into node_type
+            # and process_type filters to pass it to query help
+            from aiida.restapi.common.identifiers import get_full_type_filters
+            full_type_filter = get_full_type_filters(full_type)
+            filters.update(full_type_filter)
 
         super(NodeTranslator, self).set_query(
             filters=filters,
@@ -669,6 +678,36 @@ class NodeTranslator(BaseTranslator):
             return self._get_content()
 
         return super(NodeTranslator, self).get_results()
+
+    def get_formatted_result(self, label):
+        """
+        Runs the query and retrieves results tagged as "label".
+
+        :param label: the tag of the results to be extracted out of
+          the query rows.
+        :type label: str
+        :return: a list of the query results
+        """
+
+        results = super(NodeTranslator, self).get_formatted_result(label)
+
+        if self._result_type == 'with_outgoing':
+            result_name = 'incoming'
+        elif self._result_type == 'with_incoming':
+            result_name = 'outgoing'
+        else:
+            result_name = self.__label__
+
+        from aiida.restapi.common.identifiers import construct_full_type
+
+        for node_entry in results[result_name]:
+            # construct full_type and add it to every node
+            try:
+                node_entry['full_type'] = construct_full_type(node_entry['node_type'], node_entry['process_type'])
+            except KeyError:
+                node_entry['full_type'] = None
+
+        return results
 
     def get_statistics(self, user_pk=None):
         """Return statistics for a given node"""
