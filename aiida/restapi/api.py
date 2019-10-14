@@ -122,7 +122,7 @@ class AiidaApi(Api):
             '/computers/page/',
             '/computers/page/<int:page>/',
             '/computers/<id>/',
-            '/computers/schema/',
+            '/computers/projectable_properties/',
             endpoint='computers',
             strict_slashes=False,
             resource_class_kwargs=kwargs
@@ -131,7 +131,7 @@ class AiidaApi(Api):
         self.add_resource(
             Node,
             '/nodes/',
-            '/nodes/schema/',
+            '/nodes/projectable_properties/',
             '/nodes/statistics/',
             '/nodes/types/',
             '/nodes/download_formats/',
@@ -177,7 +177,7 @@ class AiidaApi(Api):
         self.add_resource(
             User,
             '/users/',
-            '/users/schema/',
+            '/users/projectable_properties/',
             '/users/page/',
             '/users/page/<int:page>/',
             '/users/<id>/',
@@ -189,7 +189,7 @@ class AiidaApi(Api):
         self.add_resource(
             Group,
             '/groups/',
-            '/groups/schema/',
+            '/groups/projectable_properties/',
             '/groups/page/',
             '/groups/page/<int:page>/',
             '/groups/<id>/',

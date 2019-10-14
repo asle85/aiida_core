@@ -114,11 +114,11 @@ class BaseTranslator(object):
         """
         return ''
 
-    def get_schema(self):
+    def get_projectable_properties(self):
         # pylint: disable=fixme,too-many-branches
         """
-        Get node schema
-        :return: node schema
+        Get node projectable properties
+        :return: node projectable properties
         """
 
         # Construct the full class string
@@ -133,19 +133,19 @@ class BaseTranslator(object):
         # Construct the json object to be returned
         basic_schema = orm_class.get_schema()
 
-        schema = {}
+        projectable_properties = {}
         ordering = []
 
         # get addional info and column order from translator class
-        # and combine it with basic schema
+        # and combine it with basic projectable properties
         if self._schema_projections['column_order']:
             for field in self._schema_projections['column_order']:
 
                 # basic schema
                 if field in basic_schema.keys():
-                    schema[field] = basic_schema[field]
+                    projectable_properties[field] = basic_schema[field]
                 else:
-                    ## Note: if column name starts with user_* get the schema information from
+                    ## Note: if column name starts with user_* get the projectable properties information from
                     # user class. It is added mainly to handle user_email case.
                     # TODO need to improve
                     field_parts = field.split('_')
@@ -153,7 +153,7 @@ class BaseTranslator(object):
                         from aiida.orm.users import User
                         user_schema = User.get_schema()
                         if field_parts[1] in user_schema.keys():
-                            schema[field] = user_schema[field_parts[1]]
+                            projectable_properties[field] = user_schema[field_parts[1]]
                         else:
                             raise KeyError('{} is not present in user schema'.format(field))
                     else:
@@ -161,7 +161,7 @@ class BaseTranslator(object):
 
                 # additional info defined in translator class
                 if field in self._schema_projections['additional_info']:
-                    schema[field].update(self._schema_projections['additional_info'][field])
+                    projectable_properties[field].update(self._schema_projections['additional_info'][field])
                 else:
                     raise KeyError('{} is not present in default projection additional info'.format(field))
 
@@ -169,9 +169,11 @@ class BaseTranslator(object):
             ordering = self._schema_projections['column_order']
 
         else:
-            raise ConfigurationError('Define column order to get schema for {}'.format(self._aiida_type))
+            raise ConfigurationError(
+                'Define column order to get projectable properties for {}'.format(self._aiida_type)
+            )
 
-        return dict(fields=schema, ordering=ordering)
+        return dict(fields=projectable_properties, ordering=ordering)
 
     def init_qb(self):
         """

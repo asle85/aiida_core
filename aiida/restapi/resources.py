@@ -141,11 +141,11 @@ class BaseResource(Resource):
             is_querystring_defined=(bool(query_string))
         )
 
-        ## Treat the schema case which does not imply access to the DataBase
-        if query_type == 'schema':
+        ## Treat the projectable_properties case which does not imply access to the DataBase
+        if query_type == 'projectable_properties':
 
-            ## Retrieve the schema
-            results = self.trans.get_schema()
+            ## Retrieve the projectable properties
+            results = self.trans.get_projectable_properties()
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
 
@@ -241,11 +241,11 @@ class Node(Resource):
             is_querystring_defined=(bool(query_string))
         )
 
-        ## Treat the schema case which does not imply access to the DataBase
-        if query_type == 'schema':
+        ## Treat the projectable properties case which does not imply access to the DataBase
+        if query_type == 'projectable_properties':
 
-            ## Retrieve the schema
-            results = self.trans.get_schema()
+            ## Retrieve the projectable properties
+            results = self.trans.get_projectable_properties()
 
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
