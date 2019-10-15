@@ -15,9 +15,7 @@ from __future__ import absolute_import
 
 import six
 
-from aiida.common.exceptions import InputValidationError, InvalidOperation, \
-    ConfigurationError
-from aiida.common.utils import get_object_from_string
+from aiida.common.exceptions import InputValidationError, InvalidOperation
 from aiida.orm.querybuilder import QueryBuilder
 from aiida.restapi.common.exceptions import RestValidationError, \
     RestInputValidationError
@@ -45,8 +43,6 @@ class BaseTranslator(object):
 
     _default = _default_projections = ['**']
 
-    _schema_projections = {'column_order': [], 'additional_info': {}}
-
     _is_qb_initialized = False
     _is_id_query = None
     _total_count = None
@@ -58,7 +54,7 @@ class BaseTranslator(object):
 
         keyword Class (default None but becomes this class): is the class
         from which one takes the initial values of the attributes. By default
-        is this class so that class atributes are  translated into object
+        is this class so that class atributes are translated into object
         attributes. In case of inheritance one cane use the
         same constructore but pass the inheriting class to pass its attributes.
         """
@@ -76,7 +72,6 @@ class BaseTranslator(object):
 
         self._default = Class._default  # pylint: disable=protected-access
         self._default_projections = Class._default_projections  # pylint: disable=protected-access
-        self._schema_projections = Class._schema_projections  # pylint: disable=protected-access
         self._is_qb_initialized = Class._is_qb_initialized  # pylint: disable=protected-access
         self._is_id_query = Class._is_id_query  # pylint: disable=protected-access
         self._total_count = Class._total_count  # pylint: disable=protected-access
@@ -112,66 +107,15 @@ class BaseTranslator(object):
         """
         return ''
 
-    def get_projectable_properties(self):
-        # pylint: disable=fixme,too-many-branches
+    @staticmethod
+    def get_projectable_properties():
         """
-        Get node projectable properties
-        :return: node projectable properties
+        This method is extended in specific translators classes.
+        It returns a dict as follows:
+        dict(fields=projectable_properties, ordering=ordering)
+        where projectable_properties is a dict and ordering is a list
         """
-
-        # Construct the full class string
-        if any([self._aiida_type.startswith(prefix) for prefix in ['node.', 'data.', 'process.']]):
-            class_string = 'aiida.orm.nodes.' + self._aiida_type
-        else:
-            class_string = 'aiida.orm.' + self._aiida_type
-
-        # Load correspondent orm class
-        orm_class = get_object_from_string(class_string)
-
-        # Construct the json object to be returned
-        basic_schema = orm_class.get_schema()
-
-        projectable_properties = {}
-        ordering = []
-
-        # get addional info and column order from translator class
-        # and combine it with basic projectable properties
-        if self._schema_projections['column_order']:
-            for field in self._schema_projections['column_order']:
-
-                # basic schema
-                if field in basic_schema.keys():
-                    projectable_properties[field] = basic_schema[field]
-                else:
-                    ## Note: if column name starts with user_* get the projectable properties information from
-                    # user class. It is added mainly to handle user_email case.
-                    # TODO need to improve
-                    field_parts = field.split('_')
-                    if field_parts[0] == 'user' and field != 'user_id' and len(field_parts) > 1:
-                        from aiida.orm.users import User
-                        user_schema = User.get_schema()
-                        if field_parts[1] in user_schema.keys():
-                            projectable_properties[field] = user_schema[field_parts[1]]
-                        else:
-                            raise KeyError('{} is not present in user schema'.format(field))
-                    else:
-                        raise KeyError('{} is not present in ORM basic schema'.format(field))
-
-                # additional info defined in translator class
-                if field in self._schema_projections['additional_info']:
-                    projectable_properties[field].update(self._schema_projections['additional_info'][field])
-                else:
-                    raise KeyError('{} is not present in default projection additional info'.format(field))
-
-            # order
-            ordering = self._schema_projections['column_order']
-
-        else:
-            raise ConfigurationError(
-                'Define column order to get projectable properties for {}'.format(self._aiida_type)
-            )
-
-        return dict(fields=projectable_properties, ordering=ordering)
+        return {}
 
     def init_qb(self):
         """

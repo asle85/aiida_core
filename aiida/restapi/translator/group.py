@@ -35,39 +35,66 @@ class GroupTranslator(BaseTranslator):
 
     _result_type = __label__
 
-    ## group schema
-    # All the values from column_order must present in additional info dict
-    # Note: final schema will contain details for only the fields present in column order
-    _schema_projections = {
-        'column_order': ['id', 'label', 'type_string', 'description', 'user_id', 'user_email', 'uuid'],
-        'additional_info': {
-            'id': {
-                'is_display': True
-            },
-            'label': {
-                'is_display': True
-            },
-            'type_string': {
-                'is_display': True
-            },
-            'description': {
-                'is_display': False
-            },
-            'user_id': {
-                'is_display': False
-            },
-            'user_email': {
-                'is_display': True
-            },
-            'uuid': {
-                'is_display': False
-            }
-        }
-    }
-
     def __init__(self, **kwargs):
         """
         Initialise the parameters.
         Create the basic query_help
         """
         super(GroupTranslator, self).__init__(Class=self.__class__, **kwargs)
+
+    def get_projectable_properties(self):
+        """
+        Get projectable properties specific for Group
+        :return: dict of projectable properties and column_order list
+        """
+        projectable_properties = {
+            'description': {
+                'display_name': 'Description',
+                'help_text': 'Short description of the group',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': False
+            },
+            'id': {
+                'display_name': 'Id',
+                'help_text': 'Id of the object',
+                'is_foreign_key': False,
+                'type': 'int',
+                'is_display': False
+            },
+            'label': {
+                'display_name': 'Label',
+                'help_text': 'Name of the object',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': True
+            },
+            'type_string': {
+                'display_name': 'Type_string',
+                'help_text': 'Type of the group',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': True
+            },
+            'user_id': {
+                'display_name': 'Id of creator',
+                'help_text': 'Id of the user that created the node',
+                'is_foreign_key': True,
+                'related_column': 'id',
+                'related_resource': '_dbusers',
+                'type': 'int',
+                'is_display': False
+            },
+            'uuid': {
+                'display_name': 'Unique ID',
+                'help_text': 'Universally Unique Identifier',
+                'is_foreign_key': False,
+                'type': 'unicode',
+                'is_display': False
+            }
+        }
+
+        # Note: final schema will contain details for only the fields present in column order
+        column_order = ['id', 'label', 'type_string', 'description', 'user_id', 'uuid']
+
+        return projectable_properties, column_order

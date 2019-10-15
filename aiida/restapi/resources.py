@@ -145,7 +145,8 @@ class BaseResource(Resource):
         if query_type == 'projectable_properties':
 
             ## Retrieve the projectable properties
-            results = self.trans.get_projectable_properties()
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
 
@@ -245,8 +246,8 @@ class Node(Resource):
         if query_type == 'projectable_properties':
 
             ## Retrieve the projectable properties
-            results = self.trans.get_projectable_properties()
-
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
 
@@ -471,6 +472,11 @@ class ProcessNode(Node):
             node_obj = load_node(node_id)
             report = self.trans.get_report(node_obj)
             results = report
+
+        elif query_type == 'projectable_properties':
+            ## Retrieve the projectable properties
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
 
         ## Build response and return it
         headers = self.utils.build_headers(url=request.url, total_count=1)

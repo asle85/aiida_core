@@ -159,6 +159,7 @@ class AiidaApi(Api):
 
         self.add_resource(
             ProcessNode,
+            '/processes/projectable_properties/',
             '/processes/<id>/report/',
             endpoint='processes',
             strict_slashes=False,
