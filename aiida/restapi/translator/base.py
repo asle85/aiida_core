@@ -362,8 +362,6 @@ class BaseTranslator(object):
         :param nalist: list of attributes, returns all attributes except this for node
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
-        :param download_format: file format to download e.g. cif, xyz
-        :param download: flag specifying if file has to be downloaded or visualized
         :param filename: name of the file to return its content
         :param rtype: return type of the file
         :param attributes: flag to show attributes in nodes endpoint

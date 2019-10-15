@@ -924,7 +924,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         from aiida.orm import load_node
 
         node_uuid = self.get_dummy_data()['structuredata'][0]['uuid']
-        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download?format=xsf'
+        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download?download_format=xsf'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
         structure_data = load_node(node_uuid)._exportcontent('xsf')[0]  # pylint: disable=protected-access
@@ -937,7 +937,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         from aiida.orm import load_node
 
         node_uuid = self.get_dummy_data()['cifdata'][0]['uuid']
-        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download'
+        url = self.get_url_prefix() + '/nodes/' + node_uuid + '/download?download_format=cif'
         with self.app.test_client() as client:
             rv_obj = client.get(url)
         cif = load_node(node_uuid)._prepare_cif()[0]  # pylint: disable=protected-access

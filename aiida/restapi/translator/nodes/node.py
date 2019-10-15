@@ -227,7 +227,7 @@ class NodeTranslator(BaseTranslator):
         :param nalist: list of attributes, returns all attributes except this for node
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
-        :param format: file format to download e.g. cif, xyz
+        :param download_format: file format to download e.g. cif, xyz
         :param filename: name of the file to return its content
         :param rtype: return type of the file
         :param attributes: flag to show attributes for nodes
@@ -530,7 +530,8 @@ class NodeTranslator(BaseTranslator):
                     pass
         return all_formats
 
-    def get_downloadable_data(self, node, download_format=None):
+    @staticmethod
+    def get_downloadable_data(node, download_format=None):
         """
         Generic function to download file in specified format.
         Actual definition is in child classes as the content to be
@@ -541,21 +542,19 @@ class NodeTranslator(BaseTranslator):
         :param download_format: file extension format
         :returns: data in selected format to download
 
-        If this method is called by Node resource it will look for the type
-        of object and invoke the correct method in the lowest-compatible
-        subclass
+        If this method is called for a Data node resource it will
+        invoke the get_downloadable_data method in the Data transaltor.
+        Otherwise it raises RestFeatureNotAvailable exception
         """
+        from aiida.orm import Data
+        from aiida.restapi.translator.nodes.data import DataTranslator
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
-        # Look for the translator associated to the class of which this node
-        # is instance
-        tclass = type(node)
-        for subclass in self._subclasses.values():
-            if subclass._aiida_type.split('.')[-1] == tclass.__name__:  # pylint: disable=protected-access
-                lowtrans = subclass
+        if isinstance(node, Data):
+            downloadable_data = DataTranslator.get_downloadable_data(node, download_format=download_format)
+            return downloadable_data
 
-        downloadable_data = lowtrans.get_downloadable_data(node, download_format=download_format)
-
-        return downloadable_data
+        raise RestFeatureNotAvailable('This endpoint is not available for Process nodes.')
 
     @staticmethod
     def get_retrieved_inputs(node, filename=None, rtype=None):
