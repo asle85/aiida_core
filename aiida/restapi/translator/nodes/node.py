@@ -66,7 +66,6 @@ class NodeTranslator(BaseTranslator):
         super(NodeTranslator, self).__init__(Class=Class, **kwargs)
 
         self._default_projections = ['id', 'label', 'node_type', 'process_type', 'ctime', 'mtime', 'uuid', 'user_id']
-        self._default_user_projections = ['email']
 
         ## node schema
         # All the values from column_order must present in additional info dict
@@ -310,7 +309,7 @@ class NodeTranslator(BaseTranslator):
             return {}
 
         # otherwise ...
-        node = self.qbobj.first()[1]
+        node = self.qbobj.first()[0]
 
         # content/attributes
         if self._content_type == 'attributes':
@@ -382,11 +381,11 @@ class NodeTranslator(BaseTranslator):
             data = {self._content_type: self.get_retrieved_outputs(node, self._filename, self._rtype)}
 
         elif self._content_type == 'repo_list':
-            # return the node comments
+            # return list of all the files and directories from node file repository
             data = {self._content_type: self.get_repo_list(node, self._filename)}
 
         elif self._content_type == 'repo_contents':
-            # return the node comments
+            # return the contents of single file from node file repository
             data = {self._content_type: self.get_repo_contents(node, self._filename)}
 
         elif self._content_type == 'comments':
