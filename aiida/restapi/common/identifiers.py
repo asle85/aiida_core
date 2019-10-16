@@ -84,7 +84,7 @@ def load_entry_point_from_full_type(full_type):
     :param full_type: the `full_type` unique node identifier
     :raises ValueError: if the `full_type` is invalid
     :raises TypeError: if the `full_type` is not a string type
-    :raises EntryPointError:
+    :raises :class:`~aiida.common.exceptions.EntryPointError`
     """
     from aiida.common import EntryPointError
     from aiida.common.utils import strip_prefix
@@ -120,7 +120,7 @@ def load_entry_point_from_full_type(full_type):
 
 
 class Namespace(collections.MutableMapping):
-    """ Namespace is a node group in return node hierarchy  """
+    """Namespace that can be used to map the node class hierarchy."""
 
     NAMESPACE_SEPARATOR = '.'
 
@@ -129,6 +129,8 @@ class Namespace(collections.MutableMapping):
         return json.dumps(self.get_description(), sort_keys=True, indent=4)
 
     def __init__(self, namespace, path=None, label=None, full_type=None):
+        """Construct a new node class namespace."""
+        # pylint: disable=super-init-not-called
         self._namespace = namespace
         self._label = label
         self._path = path if path else namespace
@@ -136,8 +138,9 @@ class Namespace(collections.MutableMapping):
         self._subspaces = {}
 
     def _infer_full_type(self, full_type):
-        """ update full type """
+        """Infer the full type based on the current namespace path and the given full type of the leaf."""
         from aiida.common.utils import strip_prefix
+
         if full_type or self._path is None:
             return full_type
 

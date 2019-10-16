@@ -78,6 +78,9 @@ class App(Flask):
                     response = jsonify({'message': str(error)})
                     response.status_code = 500
 
+                import traceback
+                print(traceback.format_exc())
+
                 return response
 
         else:

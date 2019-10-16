@@ -279,6 +279,7 @@ class BaseTranslator(object):
             if projections:
                 for project_key, project_list in projections.items():
                     self._query_help['project'][project_key] = project_list
+
         else:
             raise InputValidationError(
                 'Pass data in dictionary format where '
@@ -490,7 +491,17 @@ class BaseTranslator(object):
         if not self._is_qb_initialized:
             raise InvalidOperation('query builder object has not been initialized.')
 
-        results = [res[label] for res in self.qbobj.dict() if self._total_count > 0]
+        results = []
+        if self._total_count > 0:
+            for res in self.qbobj.dict():
+                tmp = res[label]
+
+                # Note: In code cleanup and design change, remove this node dependant part
+                # from base class and move it to node translator.
+                if self._result_type in ['with_outgoing', 'with_incoming']:
+                    tmp['link_type'] = res[self.__label__ + '--' + label]['type']
+                    tmp['link_label'] = res[self.__label__ + '--' + label]['label']
+                results.append(tmp)
 
         # TODO think how to make it less hardcoded
         if self._result_type == 'with_outgoing':
