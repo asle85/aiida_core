@@ -738,7 +738,7 @@ class Computer(entities.Entity):
         .. deprecated:: 1.0.0
 
             Will be removed in `v2.0.0`.
-            Use :meth:`~aiida.restapi.translator.base.get_projectable_properties` instead.
+            Use :meth:`~aiida.restapi.translator.base.BaseTranslator.get_projectable_properties` instead.
 
         """
         message = 'method is deprecated, use `aiida.restapi.translator.base.get_projectable_properties` instead'
