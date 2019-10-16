@@ -1245,10 +1245,8 @@ class Node(Entity):
             Use :meth:`~aiida.restapi.translator.base.get_projectable_properties` instead.
 
         """
-        warnings.warn(
-            'method is deprecated, use `aiida.restapi.translator.base.get_projectable_properties` instead',
-            AiidaDeprecationWarning
-        )
+        message = 'method is deprecated, use `aiida.restapi.translator.base.get_projectable_properties` instead'
+        warnings.warn(message, AiidaDeprecationWarning)  # pylint: disable=no-member
 
         return {
             'attributes': {
