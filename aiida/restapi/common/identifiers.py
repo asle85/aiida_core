@@ -82,10 +82,9 @@ def load_entry_point_from_full_type(full_type):
     """Return the loaded entry point for the given `full_type` unique node identifier.
 
     :param full_type: the `full_type` unique node identifier
-
     :raises ValueError: if the `full_type` is invalid
     :raises TypeError: if the `full_type` is not a string type
-    :raises :class:`~aiida.common.exceptions.EntryPointError`
+    :raises :class:`~aiida.common.exceptions.EntryPointError`: if the corresponding entry point cannot be loaded
     """
     from aiida.common import EntryPointError
     from aiida.common.utils import strip_prefix
