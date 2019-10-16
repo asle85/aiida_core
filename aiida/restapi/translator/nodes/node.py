@@ -67,46 +67,6 @@ class NodeTranslator(BaseTranslator):
 
         self._default_projections = ['id', 'label', 'node_type', 'process_type', 'ctime', 'mtime', 'uuid', 'user_id']
 
-        ## node schema
-        # All the values from column_order must present in additional info dict
-        # Note: final schema will contain details for only the fields present in column order
-        self._schema_projections = {
-            'column_order':
-            ['id', 'label', 'node_type', 'ctime', 'mtime', 'uuid', 'user_id', 'user_email', 'attributes', 'extras'],
-            'additional_info': {
-                'id': {
-                    'is_display': True
-                },
-                'label': {
-                    'is_display': False
-                },
-                'node_type': {
-                    'is_display': True
-                },
-                'ctime': {
-                    'is_display': True
-                },
-                'mtime': {
-                    'is_display': True
-                },
-                'uuid': {
-                    'is_display': False
-                },
-                'user_id': {
-                    'is_display': False
-                },
-                'user_email': {
-                    'is_display': True
-                },
-                'attributes': {
-                    'is_display': False
-                },
-                'extras': {
-                    'is_display': False
-                }
-            }
-        }
-
         # Inspect the subclasses of NodeTranslator, to avoid hard-coding
         # (should resemble the following tree)
         """
@@ -894,3 +854,74 @@ class NodeTranslator(BaseTranslator):
         }]
 
         return {'nodes': nodes, 'metadata': metadata}
+
+    def get_projectable_properties(self):
+        """
+        Get projectable properties specific for Node
+        :return: dict of projectable properties and column_order list
+        """
+        projectable_properties = {
+            'creator': {
+                'display_name': 'Creator',
+                'help_text': 'User that created the node',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': True
+            },
+            'ctime': {
+                'display_name': 'Creation time',
+                'help_text': 'Creation time of the node',
+                'is_foreign_key': False,
+                'type': 'datetime.datetime',
+                'is_display': True
+            },
+            'label': {
+                'display_name': 'Label',
+                'help_text': 'User-assigned label',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': False
+            },
+            'mtime': {
+                'display_name': 'Last Modification time',
+                'help_text': 'Last modification time',
+                'is_foreign_key': False,
+                'type': 'datetime.datetime',
+                'is_display': True
+            },
+            'node_type': {
+                'display_name': 'Type',
+                'help_text': 'Node type',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': True
+            },
+            'process_type': {
+                'display_name': 'Process type',
+                'help_text': 'Process type',
+                'is_foreign_key': False,
+                'type': 'str',
+                'is_display': False
+            },
+            'user_id': {
+                'display_name': 'Id of creator',
+                'help_text': 'Id of the user that created the node',
+                'is_foreign_key': True,
+                'related_column': 'id',
+                'related_resource': '_dbusers',
+                'type': 'int',
+                'is_display': False
+            },
+            'uuid': {
+                'display_name': 'Unique ID',
+                'help_text': 'Universally Unique Identifier',
+                'is_foreign_key': False,
+                'type': 'unicode',
+                'is_display': True
+            }
+        }
+
+        # Note: final schema will contain details for only the fields present in column order
+        column_order = ['uuid', 'label', 'node_type', 'ctime', 'mtime', 'creator']
+
+        return projectable_properties, column_order

@@ -210,8 +210,8 @@ class Utils(object):
             return (resource_type, page, node_id, query_type)
 
         if path[0] in [
-            'schema', 'statistics', 'types', 'download', 'download_formats', 'report', 'status', 'input_files',
-            'output_files'
+            'projectable_properties', 'statistics', 'types', 'download', 'download_formats', 'report', 'status',
+            'input_files', 'output_files'
         ]:
             query_type = path.pop(0)
             if path:
@@ -261,9 +261,9 @@ class Utils(object):
                 'requested (i.e. the path must contain '
                 '/page/)'
             )
-        # 4. No querystring if query type = schema'
-        if query_type in ('schema') and is_querystring_defined:
-            raise RestInputValidationError('schema requests do not allow specifying a query string')
+        # 4. No querystring if query type = projectable_properties'
+        if query_type in ('projectable_properties') and is_querystring_defined:
+            raise RestInputValidationError('projectable_properties requests do not allow specifying a query string')
 
     def paginate(self, page, perpage, total_count):
         """

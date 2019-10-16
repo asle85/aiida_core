@@ -943,13 +943,13 @@ class RESTApiTestSuite(RESTApiTestCase):
         cif = load_node(node_uuid)._prepare_cif()[0]  # pylint: disable=protected-access
         self.assertEqual(rv_obj.data, cif)
 
-    ############### schema #############
-    def test_schema(self):
+    ############### projectable_properties #############
+    def test_projectable_properties(self):
         """
-        test schema
+        test projectable_properties endpoint
         """
-        for nodetype in ['nodes', 'computers', 'users', 'groups']:
-            url = self.get_url_prefix() + '/' + nodetype + '/schema'
+        for nodetype in ['nodes', 'processes', 'computers', 'users', 'groups']:
+            url = self.get_url_prefix() + '/' + nodetype + '/projectable_properties'
             with self.app.test_client() as client:
                 rv_obj = client.get(url)
                 response = json.loads(rv_obj.data)

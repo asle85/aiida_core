@@ -141,11 +141,12 @@ class BaseResource(Resource):
             is_querystring_defined=(bool(query_string))
         )
 
-        ## Treat the schema case which does not imply access to the DataBase
-        if query_type == 'schema':
+        ## Treat the projectable_properties case which does not imply access to the DataBase
+        if query_type == 'projectable_properties':
 
-            ## Retrieve the schema
-            results = self.trans.get_schema()
+            ## Retrieve the projectable properties
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
 
@@ -241,12 +242,12 @@ class Node(Resource):
             is_querystring_defined=(bool(query_string))
         )
 
-        ## Treat the schema case which does not imply access to the DataBase
-        if query_type == 'schema':
+        ## Treat the projectable properties case which does not imply access to the DataBase
+        if query_type == 'projectable_properties':
 
-            ## Retrieve the schema
-            results = self.trans.get_schema()
-
+            ## Retrieve the projectable properties
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
             ## Build response and return it
             headers = self.utils.build_headers(url=request.url, total_count=1)
 
@@ -471,6 +472,11 @@ class ProcessNode(Node):
             node_obj = load_node(node_id)
             report = self.trans.get_report(node_obj)
             results = report
+
+        elif query_type == 'projectable_properties':
+            ## Retrieve the projectable properties
+            projectable_properties, ordering = self.trans.get_projectable_properties()
+            results = dict(fields=projectable_properties, ordering=ordering)
 
         ## Build response and return it
         headers = self.utils.build_headers(url=request.url, total_count=1)
