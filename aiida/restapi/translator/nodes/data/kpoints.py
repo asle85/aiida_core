@@ -32,13 +32,6 @@ class KpointsDataTranslator(DataTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(KpointsDataTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     @staticmethod
     def get_derived_properties(node):
         # pylint: disable=too-many-locals,too-many-statements,too-many-branches

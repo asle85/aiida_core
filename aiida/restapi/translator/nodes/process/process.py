@@ -32,19 +32,6 @@ class ProcessTranslator(NodeTranslator):
 
     _result_type = __label__
 
-    def __init__(self, Class=None, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-
-        # Assume default class is this class (cannot be done in the
-        # definition as it requires self)
-        if Class is None:
-            Class = self.__class__
-
-        super(ProcessTranslator, self).__init__(Class=Class, **kwargs)
-
     @staticmethod
     def get_report(process):
         """Show the log report for one or multiple processes."""

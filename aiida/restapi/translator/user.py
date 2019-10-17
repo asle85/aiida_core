@@ -35,13 +35,6 @@ class UserTranslator(BaseTranslator):
 
     _default_projections = ['id', 'first_name', 'last_name', 'institution']
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(UserTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     def get_projectable_properties(self):
         """
         Get projectable properties specific for User

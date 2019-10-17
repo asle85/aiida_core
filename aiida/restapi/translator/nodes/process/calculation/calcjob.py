@@ -33,14 +33,6 @@ class CalcJobTranslator(ProcessTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        # basic query_help object
-        super(CalcJobTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     @staticmethod
     def get_input_files(node, filename):
         """
@@ -48,12 +40,8 @@ class CalcJobTranslator(ProcessTranslator):
         :param node: aiida node
         :return: the retrieved input files for job calculation
         """
-        if node.node_type.startswith('process.calculation.calcjob.'):
-            from aiida.restapi.translator.nodes.node import NodeTranslator
-            return NodeTranslator.get_repo_list(node, filename)
-
-        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-        raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))
+        from aiida.restapi.translator.nodes.node import NodeTranslator
+        return NodeTranslator.get_repo_list(node, filename)
 
     @staticmethod
     def get_output_files(node, filename):
@@ -62,23 +50,18 @@ class CalcJobTranslator(ProcessTranslator):
         :param node: aiida node
         :return: the retrieved output files for job calculation
         """
-
         from aiida.common.exceptions import NotExistent
+        from aiida.restapi.translator.nodes.node import NodeTranslator
 
-        if node.node_type.startswith('process.calculation.calcjob.'):
-            try:
-                retrieved_folder_node = node.outputs.retrieved
-            except NotExistent:
-                response = {}
-                response['status'] = 200
-                response['data'] = 'This node does not have retrieved folder'
-                return response
+        try:
+            retrieved_folder_node = node.outputs.retrieved
+        except NotExistent:
+            response = {}
+            response['status'] = 200
+            response['data'] = 'This node does not have retrieved folder'
+            return response
 
-            from aiida.restapi.translator.nodes.node import NodeTranslator
-            return NodeTranslator.get_repo_list(retrieved_folder_node, filename)
-
-        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-        raise RestFeatureNotAvailable('This endpoint is not available for {} nodes'.format(node.node_type))
+        return NodeTranslator.get_repo_list(retrieved_folder_node, filename)
 
     @staticmethod
     def get_derived_properties(node):
@@ -89,7 +72,5 @@ class CalcJobTranslator(ProcessTranslator):
         :param node: node object
         :returns: raise RestFeatureNotAvailable exception
         """
-
         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-
         raise RestFeatureNotAvailable('This endpoint is not available for CalcJobs.')

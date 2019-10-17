@@ -35,13 +35,6 @@ class GroupTranslator(BaseTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(GroupTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     def get_projectable_properties(self):
         """
         Get projectable properties specific for Group
@@ -81,7 +74,7 @@ class GroupTranslator(BaseTranslator):
                 'help_text': 'Id of the user that created the node',
                 'is_foreign_key': True,
                 'related_column': 'id',
-                'related_resource': '_dbusers',
+                'related_resource': 'users',
                 'type': 'int',
                 'is_display': False
             },

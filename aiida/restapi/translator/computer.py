@@ -34,18 +34,28 @@ class ComputerTranslator(BaseTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(ComputerTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     def get_projectable_properties(self):
         """
         Get projectable properties specific for Computer
         :return: dict of projectable properties and column_order list
         """
+        from aiida.plugins.entry_point import get_entry_points
+        from aiida.common.exceptions import EntryPointError
+
+        schedulers = {}
+        for entry_point in get_entry_points('aiida.schedulers'):
+            try:
+                schedulers[entry_point.name] = {'doc': entry_point.load().__doc__}
+            except EntryPointError:
+                continue
+
+        transports = {}
+        for entry_point in get_entry_points('aiida.transports'):
+            try:
+                transports[entry_point.name] = {'doc': entry_point.load().__doc__}
+            except EntryPointError:
+                continue
+
         projectable_properties = {
             'description': {
                 'display_name': 'Description',
@@ -80,28 +90,7 @@ class ComputerTranslator(BaseTranslator):
                 'help_text': 'Scheduler type',
                 'is_foreign_key': False,
                 'type': 'str',
-                'valid_choices': {
-                    'direct': {
-                        'doc': 'Support for the direct execution bypassing schedulers.'
-                    },
-                    'pbsbaseclasses.PbsBaseClass': {
-                        'doc': 'Base class with support for the PBSPro scheduler'
-                    },
-                    'pbspro': {
-                        'doc': 'Subclass to support the PBSPro scheduler'
-                    },
-                    'sge': {
-                        'doc':
-                        'Support for the Sun Grid Engine scheduler and its variants/forks (Son of Grid Engine, '
-                        'Oracle Grid Engine, ...)'
-                    },
-                    'slurm': {
-                        'doc': 'Support for the SLURM scheduler (http://slurm.schedmd.com/).'
-                    },
-                    'torque': {
-                        'doc': 'Subclass to support the Torque scheduler.'
-                    }
-                },
+                'valid_choices': schedulers,
                 'is_display': True
             },
             'transport_type': {
@@ -109,17 +98,7 @@ class ComputerTranslator(BaseTranslator):
                 'help_text': 'Transport Type',
                 'is_foreign_key': False,
                 'type': 'str',
-                'valid_choices': {
-                    'local': {
-                        'doc':
-                        'Support copy and command execution on the same host on which AiiDA is running via direct '
-                        'file copy and execution commands.'
-                    },
-                    'ssh': {
-                        'doc':
-                        'Support connection, command execution and data transfer to remote computers via SSH+SFTP.'
-                    }
-                },
+                'valid_choices': transports,
                 'is_display': False
             },
             'uuid': {
