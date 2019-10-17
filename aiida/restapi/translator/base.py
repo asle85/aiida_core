@@ -346,7 +346,7 @@ class BaseTranslator(object):
                 self.set_default_projections()
             else:
                 default_projections = self.get_default_projections()
-                if attributes is not None and attributes in [True, 'true', 'True']:
+                if attributes in [True, 'true', 'True']:
                     if attributes_filter is None:
                         default_projections.append('attributes')
                     ## Check if attributes_filter is a string or a list
@@ -355,7 +355,7 @@ class BaseTranslator(object):
                     elif isinstance(attributes_filter, list):
                         for attr in attributes_filter:
                             default_projections.append('attributes.' + attr)
-                if extras is not None and extras in [True, 'true', 'True']:
+                if extras in [True, 'true', 'True']:
                     if extras_filter is None:
                         default_projections.append('extras')
                     ## Check if extras_filter is a string or a list
