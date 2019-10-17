@@ -343,8 +343,8 @@ class Group(entities.Entity):
 
         """
         warnings.warn(
-            'method is deprecated, use `aiida.restapi.translator.base.get_projectable_properties` instead',
-            AiidaDeprecationWarning
+            'method is deprecated, use '
+            '`aiida.restapi.translator.base.BaseTranslator.get_projectable_properties` instead', AiidaDeprecationWarning
         )
 
         return {
