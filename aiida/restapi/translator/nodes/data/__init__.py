@@ -35,19 +35,6 @@ class DataTranslator(NodeTranslator):
 
     _result_type = __label__
 
-    def __init__(self, Class=None, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-
-        # Assume default class is this class (cannot be done in the
-        # definition as it requires self)
-        if Class is None:
-            Class = self.__class__
-
-        super(DataTranslator, self).__init__(Class=Class, **kwargs)
-
     @staticmethod
     def get_downloadable_data(node, download_format=None):
         """
@@ -59,7 +46,14 @@ class DataTranslator(NodeTranslator):
         """
         response = {}
 
-        if download_format in node.get_export_formats():
+        if download_format is None:
+            raise RestInputValidationError(
+                'Please specify the download format. '
+                'The available download formats can be '
+                'queried using the /nodes/download_formats/ endpoint.'
+            )
+
+        elif download_format in node.get_export_formats():
             try:
                 response['data'] = node._exportcontent(download_format)[0]  # pylint: disable=protected-access
                 response['status'] = 200
@@ -73,12 +67,6 @@ class DataTranslator(NodeTranslator):
 
             return response
 
-        if download_format is None:
-            raise RestInputValidationError(
-                'Please specify the download format. '
-                'The available download formats can be '
-                'queried using the /nodes/download_formats/ endpoint.'
-            )
         else:
             raise RestInputValidationError(
                 'The format {} is not supported. '

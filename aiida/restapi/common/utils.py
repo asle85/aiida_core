@@ -505,7 +505,6 @@ class Utils(object):
         elist = None
         nelist = None
         filename = None
-        rtype = None
         download_format = None
         download = True
         attributes = None
@@ -561,8 +560,6 @@ class Utils(object):
             raise RestInputValidationError('You cannot specify download_format more than once')
         if 'filename' in field_counts.keys() and field_counts['filename'] > 1:
             raise RestInputValidationError('You cannot specify filename more than once')
-        if 'rtype' in field_counts.keys() and field_counts['rtype'] > 1:
-            raise RestInputValidationError('You cannot specify rtype more than once')
         if 'in_limit' in field_counts.keys() and field_counts['in_limit'] > 1:
             raise RestInputValidationError('You cannot specify in_limit more than once')
         if 'out_limit' in field_counts.keys() and field_counts['out_limit'] > 1:
@@ -646,12 +643,6 @@ class Utils(object):
                 else:
                     raise RestInputValidationError("only assignment operator '=' is permitted after 'filename'")
 
-            elif field[0] == 'rtype':
-                if field[1] == '=':
-                    rtype = field[2]
-                else:
-                    raise RestInputValidationError("only assignment operator '=' is permitted after 'rtype'")
-
             elif field[0] == 'full_type':
                 if field[1] == '=':
                     full_type = field[2]
@@ -723,7 +714,7 @@ class Utils(object):
 
         return (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
+            tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         )
 
     def parse_query_string(self, query_string):

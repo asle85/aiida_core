@@ -30,13 +30,6 @@ class CifDataTranslator(DataTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(CifDataTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     @staticmethod
     def get_derived_properties(node):
         """

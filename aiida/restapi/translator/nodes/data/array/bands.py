@@ -32,13 +32,6 @@ class BandsDataTranslator(DataTranslator):
 
     _result_type = __label__
 
-    def __init__(self, **kwargs):
-        """
-        Initialise the parameters.
-        Create the basic query_help
-        """
-        super(BandsDataTranslator, self).__init__(Class=self.__class__, **kwargs)
-
     @staticmethod
     def get_derived_properties(node):
         """
@@ -52,9 +45,11 @@ class BandsDataTranslator(DataTranslator):
         TODO: modify the function exportstring (or add another function in
         BandsData) so that it returns a python object rather than a string.
         """
+        response = {}
 
         from aiida.common import json
         json_string = node._exportcontent('json', comments=False)  # pylint: disable=protected-access
         json_content = json.loads(json_string[0])
+        response['bands'] = json_content
 
-        return json_content
+        return response
