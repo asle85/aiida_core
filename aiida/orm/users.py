@@ -172,7 +172,8 @@ class User(entities.Entity):
             Use :meth:`~aiida.restapi.translator.base.BaseTranslator.get_projectable_properties` instead.
 
         """
-        message = 'method is deprecated, use `aiida.restapi.translator.base.get_projectable_properties` instead'
+        message = 'method is deprecated, use' \
+            '`aiida.restapi.translator.base.BaseTranslator.get_projectable_properties` instead'
         warnings.warn(message, AiidaDeprecationWarning)  # pylint: disable=no-member
 
         return {

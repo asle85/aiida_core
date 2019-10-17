@@ -17,6 +17,8 @@ from six.moves.urllib.parse import unquote  # pylint: disable=import-error
 from flask import request, make_response
 from flask_restful import Resource
 
+from aiida.common.lang import classproperty
+from aiida.restapi.common.exceptions import RestInputValidationError
 from aiida.restapi.common.utils import Utils
 
 
@@ -91,21 +93,38 @@ class BaseResource(Resource):
     Each derived class will instantiate a different type of translator.
     This is the only difference in the classes.
     """
+    from aiida.restapi.translator.base import BaseTranslator
+
+    _translator_class = BaseTranslator
+    _parse_pk_uuid = None  # Flag to tell the path parser whether to expect a pk or a uuid pattern
 
     ## TODO add the caching support. I cache total count, results, and possibly
 
     def __init__(self, **kwargs):
-
-        self.trans = None
-
-        # Flag to tell the path parser whether to expect a pk or a uuid pattern
-        self.parse_pk_uuid = None
+        self.trans = self._translator_class(**kwargs)
 
         # Configure utils
         utils_conf_keys = ('PREFIX', 'PERPAGE_DEFAULT', 'LIMIT_DEFAULT')
         self.utils_confs = {k: kwargs[k] for k in utils_conf_keys if k in kwargs}
         self.utils = Utils(**self.utils_confs)
         self.method_decorators = {'get': kwargs.get('get_decorators', [])}
+
+    @classproperty
+    def parse_pk_uuid(cls):
+        # pylint: disable=no-self-argument
+        return cls._parse_pk_uuid
+
+    def _load_and_verify(self, node_id=None):
+        """Load node and verify it is of the required type"""
+        from aiida.orm import load_node
+        node = load_node(node_id)
+
+        if not isinstance(node, self.trans._aiida_class):  # pylint: disable=protected-access
+            raise RestInputValidationError(
+                'node {} is not of the required type {}'.format(node_id, self.trans._aiida_class)  # pylint: disable=protected-access
+            )
+
+        return node
 
     def get(self, id=None, page=None):  # pylint: disable=redefined-builtin,invalid-name,unused-argument
         # pylint: disable=too-many-locals
@@ -128,7 +147,7 @@ class BaseResource(Resource):
         # pylint: disable=unused-variable
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
+            tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -184,23 +203,20 @@ class BaseResource(Resource):
         return self.utils.build_response(status=200, headers=headers, data=data)
 
 
-class Node(Resource):
+class Node(BaseResource):
     """
     Differs from BaseResource in trans.set_query() mostly because it takes
     query_type as an input and the presence of additional result types like "tree"
     """
+    from aiida.restapi.translator.nodes.node import NodeTranslator
+
+    _translator_class = NodeTranslator
+    _parse_pk_uuid = 'uuid'  # Parse a uuid pattern in the URL path (not a pk)
 
     def __init__(self, **kwargs):
-
-        # Set translator
-        from aiida.restapi.translator.nodes.node import NodeTranslator
-        self.trans = NodeTranslator(**kwargs)
-
+        super(Node, self).__init__(**kwargs)
         from aiida.orm import Node as tNode
         self.tclass = tNode
-
-        # Parse a uuid pattern in the URL path (not a pk)
-        self.parse_pk_uuid = 'uuid'
 
         # Configure utils
         utils_conf_keys = ('PREFIX', 'PERPAGE_DEFAULT', 'LIMIT_DEFAULT')
@@ -229,7 +245,7 @@ class Node(Resource):
 
         (
             limit, offset, perpage, orderby, filters, alist, nalist, elist, nelist, download_format, download, filename,
-            rtype, tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
+            tree_in_limit, tree_out_limit, attributes, attributes_filter, extras, extras_filter, full_type
         ) = self.utils.parse_query_string(query_string)
 
         ## Validate request
@@ -274,48 +290,6 @@ class Node(Resource):
             headers = self.utils.build_headers(url=request.url, total_count=0)
             results = self.trans.get_all_download_formats(full_type)
 
-        # elif query_type == 'download':
-        #     from aiida.orm import load_node
-        #     node_obj = load_node(node_id)
-        #     node_type = node_obj.node_type
-        #     node_type = "aiida.restapi.translator.nodes." + node_type[:-1]
-        #
-        #     try:
-        #         import importlib
-        #         module_name, class_name = node_type.rsplit('.', 1)
-        #         module = importlib.import_module(module_name)
-        #         translator_class = getattr(module, class_name+"Translator")
-        #     except (ValueError, ImportError):
-        #         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-        #         raise RestFeatureNotAvailable(
-        #             'This endpoint is not available for node type {}'.format(node_obj.node_type
-        #             )
-        #         )
-        #
-        #     params = request.args
-        #     if 'format' in params:
-        #         format = params.get('format', '')
-        #     if 'download' in params:
-        #         download = False if params.get('download') in ['false', False] else True
-        #
-        #
-        #     try:
-        #         results = translator_class.get_downloadable_data(node_obj)
-        #         if results:
-        #             if results['status'] == 200:
-        #                 data = results['data']
-        #                 response = make_response(data)
-        #                 response.headers['content-type'] = 'application/octet-stream'
-        #                 response.headers['Content-Disposition'] = 'attachment; filename="{}"'.format(
-        #                     results['filename']
-        #                 )
-        #                 return response
-        #             results = results['data']
-        #     except AttributeError:
-        #         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-        #         raise RestFeatureNotAvailable('This endpoint is not available for node type {}'.format(
-        #             node_obj.node_type))
-
         else:
             ## Initialize the translator
             self.trans.set_query(
@@ -330,7 +304,6 @@ class Node(Resource):
                 download_format=download_format,
                 download=download,
                 filename=filename,
-                rtype=rtype,
                 attributes=attributes,
                 attributes_filter=attributes_filter,
                 extras=extras,
@@ -368,23 +341,6 @@ class Node(Resource):
 
                     results = results['download']['data']
 
-                if query_type in ['retrieved_inputs', 'retrieved_outputs'] and results:
-                    try:
-                        status = results[query_type]['status']
-                    except KeyError:
-                        status = ''
-                    except TypeError:
-                        status = ''
-
-                    if status == 200:
-                        data = results[query_type]['data']
-                        response = make_response(data)
-                        response.headers['content-type'] = 'application/octet-stream'
-                        response.headers['Content-Disposition'] = 'attachment; filename="{}"'.format(
-                            results[query_type]['filename']
-                        )
-                        return response
-
                 headers = self.utils.build_headers(url=request.url, total_count=total_count)
 
         ## Build response
@@ -404,51 +360,33 @@ class Node(Resource):
 
 class Computer(BaseResource):
     """ Resource for Computer """
+    from aiida.restapi.translator.computer import ComputerTranslator
 
-    def __init__(self, **kwargs):
-        super(Computer, self).__init__(**kwargs)
-
-        ## Instantiate the correspondent translator
-        from aiida.restapi.translator.computer import ComputerTranslator
-        self.trans = ComputerTranslator(**kwargs)
-
-        # Set wheteher to expect a pk (integer) or a uuid pattern (string) in
-        # the URL path
-        self.parse_pk_uuid = 'uuid'
+    _translator_class = ComputerTranslator
+    _parse_pk_uuid = 'uuid'
 
 
 class Group(BaseResource):
     """ Resource for Group """
+    from aiida.restapi.translator.group import GroupTranslator
 
-    def __init__(self, **kwargs):
-        super(Group, self).__init__(**kwargs)
-
-        from aiida.restapi.translator.group import GroupTranslator
-        self.trans = GroupTranslator(**kwargs)
-
-        self.parse_pk_uuid = 'uuid'
+    _translator_class = GroupTranslator
+    _parse_pk_uuid = 'uuid'
 
 
 class User(BaseResource):
     """ Resource for User """
+    from aiida.restapi.translator.user import UserTranslator
 
-    def __init__(self, **kwargs):
-        super(User, self).__init__(**kwargs)
-
-        from aiida.restapi.translator.user import UserTranslator
-        self.trans = UserTranslator(**kwargs)
-
-        self.parse_pk_uuid = 'pk'
+    _translator_class = UserTranslator
+    _parse_pk_uuid = 'pk'
 
 
 class ProcessNode(Node):
     """ Resource for ProcessNode """
+    from aiida.restapi.translator.nodes.process.process import ProcessTranslator
 
-    def __init__(self, **kwargs):
-        super(ProcessNode, self).__init__(**kwargs)
-
-        from aiida.restapi.translator.nodes.process.process import ProcessTranslator
-        self.trans = ProcessTranslator(**kwargs)
+    _translator_class = ProcessTranslator
 
     def get(self, id=None, page=None):  # pylint: disable=redefined-builtin
         """
@@ -468,9 +406,8 @@ class ProcessNode(Node):
 
         results = None
         if query_type == 'report':
-            from aiida.orm import load_node
-            node_obj = load_node(node_id)
-            report = self.trans.get_report(node_obj)
+            node = self._load_and_verify(node_id)
+            report = self.trans.get_report(node)
             results = report
 
         elif query_type == 'projectable_properties':
@@ -498,12 +435,9 @@ class ProcessNode(Node):
 
 class CalcJobNode(ProcessNode):
     """ Resource for CalcJobNode """
+    from aiida.restapi.translator.nodes.process.calculation.calcjob import CalcJobTranslator
 
-    def __init__(self, **kwargs):
-        super(CalcJobNode, self).__init__(**kwargs)
-
-        from aiida.restapi.translator.nodes.process.calculation.calcjob import CalcJobTranslator
-        self.trans = CalcJobTranslator(**kwargs)
+    _translator_class = CalcJobTranslator
 
     def get(self, id=None, page=None):  # pylint: disable=redefined-builtin
         """
@@ -521,18 +455,16 @@ class CalcJobNode(ProcessNode):
         ## Parse request
         (resource_type, page, node_id, query_type) = self.utils.parse_path(path, parse_pk_uuid=self.parse_pk_uuid)
 
+        node = self._load_and_verify(node_id)
         results = None
 
         params = request.args
         filename = params.get('filename', '')
 
-        from aiida.orm import load_node
-        node_obj = load_node(node_id)
-
         if query_type == 'input_files':
-            results = self.trans.get_input_files(node_obj, filename)
+            results = self.trans.get_input_files(node, filename)
         elif query_type == 'output_files':
-            results = self.trans.get_output_files(node_obj, filename)
+            results = self.trans.get_output_files(node, filename)
 
         ## Build response and return it
         headers = self.utils.build_headers(url=request.url, total_count=1)

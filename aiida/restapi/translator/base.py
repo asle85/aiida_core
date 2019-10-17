@@ -47,7 +47,7 @@ class BaseTranslator(object):
     _is_id_query = None
     _total_count = None
 
-    def __init__(self, Class=None, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialise the parameters.
         Create the basic query_help
@@ -58,24 +58,6 @@ class BaseTranslator(object):
         attributes. In case of inheritance one cane use the
         same constructore but pass the inheriting class to pass its attributes.
         """
-
-        # Assume default class is this class (cannot be done in the
-        # definition as it requires self)
-        if Class is None:
-            Class = self.__class__
-
-        # Assign class parameters to the object
-        self.__label__ = Class.__label__
-        self._aiida_class = Class._aiida_class  # pylint: disable=protected-access
-        self._aiida_type = Class._aiida_type  # pylint: disable=protected-access
-        self._result_type = Class.__label__
-
-        self._default = Class._default  # pylint: disable=protected-access
-        self._default_projections = Class._default_projections  # pylint: disable=protected-access
-        self._is_qb_initialized = Class._is_qb_initialized  # pylint: disable=protected-access
-        self._is_id_query = Class._is_id_query  # pylint: disable=protected-access
-        self._total_count = Class._total_count  # pylint: disable=protected-access
-
         # Basic filter (dict) to set the identity of the uuid. None if
         #  no specific node is requested
         self._id_filter = None
@@ -310,7 +292,6 @@ class BaseTranslator(object):
         :param elist: list of extras queries for node
         :param nelist: list of extras, returns all extras except this for node
         :param filename: name of the file to return its content
-        :param rtype: return type of the file
         :param attributes: flag to show attributes in nodes endpoint
         :param attributes_filter: list of node attributes to query
         :param extras: flag to show attributes in nodes endpoint
@@ -346,7 +327,7 @@ class BaseTranslator(object):
                 self.set_default_projections()
             else:
                 default_projections = self.get_default_projections()
-                if attributes is not None and attributes in [True, 'true', 'True']:
+                if attributes in [True, 'true', 'True']:
                     if attributes_filter is None:
                         default_projections.append('attributes')
                     ## Check if attributes_filter is a string or a list
@@ -355,7 +336,7 @@ class BaseTranslator(object):
                     elif isinstance(attributes_filter, list):
                         for attr in attributes_filter:
                             default_projections.append('attributes.' + attr)
-                if extras is not None and extras in [True, 'true', 'True']:
+                if extras in [True, 'true', 'True']:
                     if extras_filter is None:
                         default_projections.append('extras')
                     ## Check if extras_filter is a string or a list

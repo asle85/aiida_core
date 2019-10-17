@@ -49,21 +49,15 @@ class NodeTranslator(BaseTranslator):
     _download_format = None
     _download = None
     _filename = None
-    _rtype = None
 
-    def __init__(self, Class=None, **kwargs):
+    def __init__(self, **kwargs):
         """
         Initialise the parameters.
         Create the basic query_help
         """
 
-        # Assume default class is this class (cannot be done in the
-        # definition as it requires self)
-        if Class is None:
-            Class = self.__class__
-
         # basic initialization
-        super(NodeTranslator, self).__init__(Class=Class, **kwargs)
+        super(NodeTranslator, self).__init__(**kwargs)
 
         self._default_projections = ['id', 'label', 'node_type', 'process_type', 'ctime', 'mtime', 'uuid', 'user_id']
 
@@ -95,8 +89,7 @@ class NodeTranslator(BaseTranslator):
         nelist=None,
         download_format=None,
         download=None,
-        filename=None,
-        rtype=None,
+        filename=None
     ):
         """
         sets one of the mutually exclusive values for self._result_type and
@@ -133,14 +126,6 @@ class NodeTranslator(BaseTranslator):
         elif query_type == 'repo_contents':
             self._content_type = 'repo_contents'
             self._filename = filename
-        elif query_type == 'retrieved_inputs':
-            self._content_type = 'retrieved_inputs'
-            self._filename = filename
-            self._rtype = rtype
-        elif query_type == 'retrieved_outputs':
-            self._content_type = 'retrieved_outputs'
-            self._filename = filename
-            self._rtype = rtype
         else:
             raise InputValidationError('invalid result/content value: {}'.format(query_type))
 
@@ -169,7 +154,6 @@ class NodeTranslator(BaseTranslator):
         download_format=None,
         download=None,
         filename=None,
-        rtype=None,
         attributes=None,
         attributes_filter=None,
         extras=None,
@@ -192,7 +176,6 @@ class NodeTranslator(BaseTranslator):
         :param nelist: list of extras, returns all extras except this for node
         :param download_format: file format to download e.g. cif, xyz
         :param filename: name of the file to return its content
-        :param rtype: return type of the file
         :param attributes: flag to show attributes for nodes
         :param attributes_filter: list of attributes to query
         :param extras: flag to show extras for nodes
@@ -216,8 +199,7 @@ class NodeTranslator(BaseTranslator):
             nelist=nelist,
             download_format=download_format,
             download=download,
-            filename=filename,
-            rtype=rtype
+            filename=filename
         )
 
         ## Define projections
@@ -332,16 +314,6 @@ class NodeTranslator(BaseTranslator):
             # In this we do not return a dictionary but download the file in
             # specified format if available
             data = {self._content_type: self.get_downloadable_data(node, self._download_format)}
-
-        elif self._content_type == 'retrieved_inputs':
-            # This type is only available for calc nodes. In case of job calc it
-            # returns calc incoming prepared to submit calc on the cluster else []
-            data = {self._content_type: self.get_retrieved_inputs(node, self._filename, self._rtype)}
-
-        elif self._content_type == 'retrieved_outputs':
-            # This type is only available for calc nodes. In case of job calc it
-            # returns calc outgoing retrieved from the cluster else []
-            data = {self._content_type: self.get_retrieved_outputs(node, self._filename, self._rtype)}
 
         elif self._content_type == 'repo_list':
             # return list of all the files and directories from node file repository
@@ -462,13 +434,20 @@ class NodeTranslator(BaseTranslator):
         """
         from aiida.plugins.entry_point import load_entry_point, get_entry_point_names
         from aiida.restapi.common.identifiers import load_entry_point_from_full_type, construct_full_type
+        from aiida.common import EntryPointError
         from aiida.common.exceptions import LoadingEntryPointError
+        from aiida.restapi.common.exceptions import RestFeatureNotAvailable, RestInputValidationError
 
         all_formats = {}
 
         if full_type:
+            try:
+                node_cls = load_entry_point_from_full_type(full_type)
+            except (TypeError, ValueError):
+                raise RestInputValidationError('The full type {} is invalid.'.format(full_type))
+            except EntryPointError:
+                raise RestFeatureNotAvailable('The download formats for this node type are not available.')
 
-            node_cls = load_entry_point_from_full_type(full_type)
             try:
                 available_formats = node_cls.get_export_formats()
                 all_formats[full_type] = available_formats
@@ -521,34 +500,6 @@ class NodeTranslator(BaseTranslator):
             return downloadable_data
 
         raise RestFeatureNotAvailable('This endpoint is not available for Process nodes.')
-
-    @staticmethod
-    def get_retrieved_inputs(node, filename=None, rtype=None):
-        """
-        Generic function to return output of calc inputls verdi command.
-        Actual definition is in child classes as the content to be
-        returned and its format depends on the plugin specific
-        to the resource
-
-        :param node: node object
-        :returns: list of calc inputls command
-        """
-        # pylint: disable=unused-argument
-        return []
-
-    @staticmethod
-    def get_retrieved_outputs(node, filename=None, rtype=None):
-        """
-        Generic function to return output of calc outputls verdi command.
-        Actual definition is in child classes as the content to be
-        returned and its format depends on the plugin specific
-        to the resource
-
-        :param node: node object
-        :returns: list of calc outputls command
-        """
-        # pylint: disable=unused-argument
-        return []
 
     @staticmethod
     def get_repo_list(node, filename=''):
@@ -908,7 +859,7 @@ class NodeTranslator(BaseTranslator):
                 'help_text': 'Id of the user that created the node',
                 'is_foreign_key': True,
                 'related_column': 'id',
-                'related_resource': '_dbusers',
+                'related_resource': 'users',
                 'type': 'int',
                 'is_display': False
             },
