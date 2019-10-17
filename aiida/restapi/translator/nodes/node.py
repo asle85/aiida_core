@@ -146,11 +146,14 @@ class NodeTranslator(BaseTranslator):
 
         # Add input/output relation to the query help
         if self._result_type != self.__label__:
+            edge_tag = self.__label__ + '--' + self._result_type
             self._query_help['path'].append({
-                'entity_type': ('node.Node.', 'data.Data.'),
+                'cls': self._aiida_class,
                 'tag': self._result_type,
+                'edge_tag': edge_tag,
                 self._result_type: self.__label__
             })
+            self._query_help['project'][edge_tag] = [{'label': {}}, {'type': {}}]
 
     def set_query(
         self,
@@ -507,9 +510,12 @@ class NodeTranslator(BaseTranslator):
         Otherwise it raises RestFeatureNotAvailable exception
         """
         from aiida.orm import Data
-        from aiida.restapi.translator.nodes.data import DataTranslator
+        from aiida.restapi.translator.nodes.data import DataTranslator  # pylint: disable=cyclic-import
         from aiida.restapi.common.exceptions import RestFeatureNotAvailable
 
+        # This needs to be here because currently, for all nodes the `NodeTranslator` will be instantiated. Once that
+        # logic is cleaned where the correct translator sub class is instantiated based on the node type that is
+        # referenced, this hack can be removed.
         if isinstance(node, Data):
             downloadable_data = DataTranslator.get_downloadable_data(node, download_format=download_format)
             return downloadable_data
