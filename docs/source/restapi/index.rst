@@ -146,7 +146,7 @@ AiiDA object(s) you want to request. The following resources are available:
 +------------------------------------------------------------------------------------+----------------------+
 | :py:class:`ProcessNode <aiida.orm.nodes.process.ProcessNode>`                      | ``/processes``       |
 +------------------------------------------------------------------------------------+----------------------+
-| :py:class:`CalcJobNode <aiida.orm.nodes.process.calculation.calcjob.CalcJobNode.>` | ``/calcjobs``        |
+| :py:class:`CalcJobNode <aiida.orm.nodes.process.calculation.calcjob.CalcJobNode>`  | ``/calcjobs``        |
 +------------------------------------------------------------------------------------+----------------------+
 
 For a **full list** of available endpoints for each resource, simply query the base URL of the REST API (e.g. ``http://localhost:5000``).
