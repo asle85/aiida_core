@@ -72,5 +72,6 @@ class CalcJobTranslator(ProcessTranslator):
         :param node: node object
         :returns: raise RestFeatureNotAvailable exception
         """
-        from aiida.restapi.common.exceptions import RestFeatureNotAvailable
-        raise RestFeatureNotAvailable('This endpoint is not available for CalcJobs.')
+        response = {}
+
+        return response
