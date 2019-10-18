@@ -329,6 +329,24 @@ class Node(BaseResource):
                 ## Retrieve results
                 results = self.trans.get_results()
 
+                if attributes_filter is not None and attributes:
+                    for node in results['nodes']:
+                        node['attributes'] = {}
+                        if not isinstance(attributes_filter, list):
+                            attributes_filter = [attributes_filter]
+                        for attr in attributes_filter:
+                            node['attributes'][str(attr)] = node['attributes.' + str(attr)]
+                            del node['attributes.' + str(attr)]
+
+                if extras_filter is not None and extras:
+                    for node in results['nodes']:
+                        node['extras'] = {}
+                        if not isinstance(extras_filter, list):
+                            extras_filter = [extras_filter]
+                        for extra in extras_filter:
+                            node['extras'][str(extra)] = node['extras.' + str(extra)]
+                            del node['extras.' + str(extra)]
+
                 if query_type == 'download' and download not in ['false', 'False', False] and results:
                     if results['download']['status'] == 200:
                         data = results['download']['data']

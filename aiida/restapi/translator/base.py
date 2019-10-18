@@ -327,24 +327,27 @@ class BaseTranslator(object):
                 self.set_default_projections()
             else:
                 default_projections = self.get_default_projections()
+
                 if attributes in [True, 'true', 'True']:
                     if attributes_filter is None:
                         default_projections.append('attributes')
-                    ## Check if attributes_filter is a string or a list
-                    elif isinstance(attributes_filter, six.string_types):
-                        default_projections.append('attributes.' + attributes_filter)
-                    elif isinstance(attributes_filter, list):
+                    else:
+                        ## Check if attributes_filter is not a list
+                        if not isinstance(attributes_filter, list):
+                            attributes_filter = [attributes_filter]
                         for attr in attributes_filter:
-                            default_projections.append('attributes.' + attr)
+                            default_projections.append('attributes.' + str(attr))
+
                 if extras in [True, 'true', 'True']:
                     if extras_filter is None:
                         default_projections.append('extras')
-                    ## Check if extras_filter is a string or a list
-                    elif isinstance(extras_filter, str):
-                        default_projections.append('extras.' + extras_filter)
-                    elif isinstance(extras_filter, list):
+                    else:
+                        ## Check if extras_filter is not a list
+                        if not isinstance(extras_filter, list):
+                            extras_filter = [extras_filter]
                         for extra in extras_filter:
-                            default_projections.append('extras.' + extra)
+                            default_projections.append('extras.' + str(extra))
+
                 self.set_projections({self.__label__: default_projections})
         else:
             tagged_projections = {self._result_type: projections}

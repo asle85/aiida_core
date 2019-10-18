@@ -880,8 +880,8 @@ class RESTApiTestSuite(RESTApiTestCase):
         with self.app.test_client() as client:
             response_value = client.get(url)
             response = json.loads(response_value.data)
-            self.assertEqual(response['data']['nodes'][0]['extras.extra1'], extras['extra1'])
-            self.assertEqual(response['data']['nodes'][0]['extras.extra2'], extras['extra2'])
+            self.assertEqual(response['data']['nodes'][0]['extras']['extra1'], extras['extra1'])
+            self.assertEqual(response['data']['nodes'][0]['extras']['extra2'], extras['extra2'])
 
     ############### structure node attributes filter #############
     def test_structure_attributes_filter(self):
@@ -894,7 +894,7 @@ class RESTApiTestSuite(RESTApiTestCase):
         with self.app.test_client() as client:
             rv_obj = client.get(url)
             response = json.loads(rv_obj.data)
-            self.assertEqual(response['data']['nodes'][0]['attributes.cell'], cell)
+            self.assertEqual(response['data']['nodes'][0]['attributes']['cell'], cell)
 
     ############### Structure visualization and download #############
     def test_structure_derived_properties(self):
