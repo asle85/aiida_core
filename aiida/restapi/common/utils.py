@@ -215,7 +215,7 @@ class Utils(object):
         ]:
             query_type = path.pop(0)
             if path:
-                raise RestInputValidationError('Given url do not accept further fields')
+                raise RestInputValidationError('Given url does not accept further fields')
         elif path[0] in ['links', 'contents']:
             path.pop(0)
             query_type = path.pop(0)

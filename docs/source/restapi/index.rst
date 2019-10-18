@@ -194,7 +194,7 @@ relation between the nodes, whereas in the second case you have to append ``cont
 depending on the kind of content you want to access. Here are some examples::
 
     http://localhost:5000/api/v4/nodes/338357f4/links/incoming
-    http://localhost:5000/api/v4/nodes/338357f4/links/incoming
+    http://localhost:5000/api/v4/nodes/338357f4/links/outgoing
     http://localhost:5000/api/v4/nodes/338357f4/contents/attributes
     http://localhost:5000/api/v4/nodes/338357f4/contents/extras
 
@@ -252,11 +252,13 @@ All of them must be followed by the operator ``=``. Here is the complete list:
     :nelist: (incompatible with ``elist``) Similar to ``nalist`` but for extras.
         It requires that the path contains the endpoint ``/content/extras``.
 
-    :attributes and attributes_filter: by default ``attributes`` are not returned in ``/nodes`` endpoint. To get ``attributes``,
-        specify ``attributes=true`` and ``attributes_filters=<all or comma separated list of attributes>`` you want to request.
+    :attributes and attributes_filter: by default ``attributes`` are not returned in ``/nodes`` endpoint. To get all list
+        of ``attributes`` specify ``attributes=true`` and to get selected ``attribute(s)`` list, use
+        ``attributes=true&attributes_filters=<comma separated list of attributes you want to request>``.
 
-    :extras and extras_filter: by default ``extras`` are not returned in ``/nodes`` endpoint. To get ``extras``,
-        specify ``extras=true`` and ``extras_filters=<all or comma separated list of extras>`` you want to request.
+    :extras and extras_filter: by default ``extras`` are not returned in ``/nodes`` endpoint. To get all list
+        of ``extras`` specify ``extras=true`` and to get selected ``extras`` list, use
+        ``extras=true&extras_filters=<comma separated list of extras you want to request>``.
 
     :download_format: to specify download format in ``/download`` endpoint.
 
